@@ -85,15 +85,18 @@ internal fun MarkdownViewerScreen(
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest
-                            ): Boolean = openExternalLink(request.url)
+                            ): Boolean = handleLink(request.url)
 
                             @Suppress("DEPRECATION")
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 url: String
-                            ): Boolean = openExternalLink(Uri.parse(url))
+                            ): Boolean = handleLink(Uri.parse(url))
 
-                            private fun openExternalLink(uri: Uri): Boolean {
+                            private fun handleLink(uri: Uri): Boolean {
+                                // Let WebView handle in-document anchors such as #section.
+                                if (uri.scheme == null && uri.fragment != null) return false
+
                                 return when (uri.scheme?.lowercase()) {
                                     "http", "https", "mailto" -> {
                                         runCatching {
