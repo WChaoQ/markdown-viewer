@@ -19,8 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
+import java.io.FilterInputStream
 import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.util.Locale
 
 class MarkdownViewerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,34 +76,36 @@ class MarkdownViewerActivity : ComponentActivity() {
     }
 
     private fun loadDocument(uri: Uri): Pair<String, String> {
-        val fileName = queryDisplayName(uri) ?: uri.lastPathSegment ?: "document.md"
+        val fileName = queryDisplayName(uri)
+            ?.takeIf(String::isNotBlank)
+            ?: Uri.decode(uri.lastPathSegment.orEmpty()).takeIf(String::isNotBlank)
+            ?: "document.md"
         val mimeType = contentResolver.getType(uri)
-        val hasMarkdownExtension = fileName.endsWith(".md", ignoreCase = true) ||
-            fileName.endsWith(".markdown", ignoreCase = true)
+            ?.substringBefore(';')
+            ?.trim()
+            ?.lowercase(Locale.ROOT)
+        val normalizedName = fileName.lowercase(Locale.ROOT)
+        val hasMarkdownExtension = normalizedName.endsWith(".md") ||
+            normalizedName.endsWith(".markdown")
         val hasMarkdownMime = mimeType == "text/markdown" || mimeType == "text/x-markdown"
 
         if (!hasMarkdownExtension && !hasMarkdownMime) {
             throw IOException("This file does not appear to be a Markdown document.")
         }
 
-        val bytes = contentResolver.openInputStream(uri)?.use { input ->
-            val output = ByteArrayOutputStream()
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var total = 0
-
-            while (true) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                total += count
-                if (total > MAX_DOCUMENT_BYTES) {
-                    throw IOException("This Markdown document is larger than 20 MB.")
+        val content = contentResolver.openInputStream(uri)?.use { input ->
+            InputStreamReader(SizeLimitedInputStream(input, MAX_DOCUMENT_BYTES), Charsets.UTF_8).use { reader ->
+                val result = StringBuilder()
+                val buffer = CharArray(DEFAULT_BUFFER_SIZE)
+                while (true) {
+                    val count = reader.read(buffer)
+                    if (count < 0) break
+                    result.append(buffer, 0, count)
                 }
-                output.write(buffer, 0, count)
+                result.toString().removePrefix("\uFEFF")
             }
-            output.toByteArray()
         } ?: throw IOException("The selected document could not be opened.")
 
-        val content = bytes.toString(Charsets.UTF_8).removePrefix("\uFEFF")
         return fileName to content
     }
 
@@ -123,6 +128,34 @@ class MarkdownViewerActivity : ComponentActivity() {
             null
         } finally {
             cursor?.close()
+        }
+    }
+
+    private class SizeLimitedInputStream(
+        input: InputStream,
+        private val maxBytes: Int
+    ) : FilterInputStream(input) {
+        private var bytesRead = 0
+
+        override fun read(): Int {
+            val value = super.read()
+            if (value >= 0) addBytes(1)
+            return value
+        }
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+            if (length == 0) return 0
+            val remainingPlusOne = (maxBytes - bytesRead + 1).coerceAtLeast(1)
+            val count = super.read(buffer, offset, minOf(length, remainingPlusOne))
+            if (count > 0) addBytes(count)
+            return count
+        }
+
+        private fun addBytes(count: Int) {
+            bytesRead += count
+            if (bytesRead > maxBytes) {
+                throw IOException("This Markdown document is larger than 20 MB.")
+            }
         }
     }
 
