@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,10 +18,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStreamReader
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.CharacterCodingException
 import java.util.Locale
 
 class MarkdownViewerActivity : ComponentActivity() {
@@ -31,21 +36,25 @@ class MarkdownViewerActivity : ComponentActivity() {
 
         setContent {
             val darkTheme = isSystemInDarkTheme()
-            var state by remember { mutableStateOf<ViewerState>(ViewerState.Loading) }
+            var fileName by remember { mutableStateOf<String?>(null) }
+            var markdown by remember { mutableStateOf<String?>(null) }
 
             LaunchedEffect(incomingUri) {
-                state = if (incomingUri == null) {
-                    ViewerState.Error("No Markdown document was provided.")
-                } else {
-                    withContext(Dispatchers.IO) {
-                        runCatching { loadDocument(incomingUri) }
-                            .fold(
-                                onSuccess = { ViewerState.Ready(it.first, it.second) },
-                                onFailure = {
-                                    ViewerState.Error(it.message ?: "Unable to read this document.")
-                                }
-                            )
+                if (incomingUri == null) {
+                    closeWithMessage("No Markdown document was provided.")
+                    return@LaunchedEffect
+                }
+
+                try {
+                    val document = withContext(Dispatchers.IO) {
+                        loadDocument(incomingUri)
                     }
+                    fileName = document.first
+                    markdown = document.second
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    closeWithMessage(error.toUserMessage())
                 }
             }
 
@@ -53,24 +62,28 @@ class MarkdownViewerActivity : ComponentActivity() {
                 colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
             ) {
                 Surface(color = Color.Transparent) {
-                    when (val current = state) {
-                        ViewerState.Loading -> MarkdownViewerScreen(
-                            title = "Markdown Viewer",
-                            markdown = null
-                        )
-                        is ViewerState.Ready -> MarkdownViewerScreen(
-                            title = current.fileName,
-                            markdown = current.content
-                        )
-                        is ViewerState.Error -> MarkdownViewerScreen(
-                            title = "Unable to open file",
-                            markdown = null,
-                            error = current.message
-                        )
-                    }
+                    MarkdownViewerScreen(
+                        title = fileName ?: "Markdown Viewer",
+                        markdown = markdown
+                    )
                 }
             }
         }
+    }
+
+    private fun closeWithMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        finish()
+    }
+
+    private fun Exception.toUserMessage(): String = when (this) {
+        is DocumentTooLargeException -> "This document is larger than 20 MB."
+        is EmptyMarkdownDocumentException -> "This Markdown document is empty."
+        is UnsupportedMarkdownException -> "This file is not a supported Markdown document."
+        is SecurityException -> "Permission to read this document was denied. Open it again."
+        is FileNotFoundException -> "This document is no longer available."
+        is CharacterCodingException -> "This document is not valid UTF-8 text."
+        else -> "Unable to read this document. Please open it again."
     }
 
     private fun loadDocument(uri: Uri): Pair<String, String> {
@@ -88,11 +101,14 @@ class MarkdownViewerActivity : ComponentActivity() {
         val hasMarkdownMime = mimeType == "text/markdown" || mimeType == "text/x-markdown"
 
         if (!hasMarkdownExtension && !hasMarkdownMime) {
-            throw IOException("This file does not appear to be a Markdown document.")
+            throw UnsupportedMarkdownException()
         }
 
         val content = contentResolver.openInputStream(uri)?.use { input ->
-            InputStreamReader(SizeLimitedInputStream(input, MAX_DOCUMENT_BYTES), Charsets.UTF_8).use { reader ->
+            val decoder = Charsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+            InputStreamReader(SizeLimitedInputStream(input, MAX_DOCUMENT_BYTES), decoder).use { reader ->
                 val result = StringBuilder()
                 val buffer = CharArray(DEFAULT_BUFFER_SIZE)
                 while (true) {
@@ -102,8 +118,9 @@ class MarkdownViewerActivity : ComponentActivity() {
                 }
                 result.toString().removePrefix("\uFEFF")
             }
-        } ?: throw IOException("The selected document could not be opened.")
+        } ?: throw IOException("Unable to open document.")
 
+        if (content.isBlank()) throw EmptyMarkdownDocumentException()
         return fileName to content
     }
 
@@ -129,13 +146,11 @@ class MarkdownViewerActivity : ComponentActivity() {
         }
     }
 
-    private sealed interface ViewerState {
-        data object Loading : ViewerState
-        data class Ready(val fileName: String, val content: String) : ViewerState
-        data class Error(val message: String) : ViewerState
-    }
-
     private companion object {
         const val MAX_DOCUMENT_BYTES = 20 * 1024 * 1024
     }
 }
+
+internal class DocumentTooLargeException : IOException()
+internal class EmptyMarkdownDocumentException : IOException()
+internal class UnsupportedMarkdownException : IOException()
