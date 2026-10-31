@@ -1,6 +1,7 @@
 package com.wchaoq.markdownviewer
 
 import android.content.Intent
+import android.os.Build
 import android.graphics.Color as AndroidColor
 import android.net.Uri
 import android.view.View
@@ -83,10 +84,20 @@ internal fun MarkdownViewerScreen(
                             AndroidColor.parseColor(if (darkTheme) "#121212" else "#FFFBFE")
                         )
                         settings.javaScriptEnabled = false
+                        settings.javaScriptCanOpenWindowsAutomatically = false
+                        settings.setSupportMultipleWindows(false)
                         settings.domStorageEnabled = false
+                        settings.databaseEnabled = false
+                        settings.geolocationEnabled = false
                         settings.allowFileAccess = false
                         settings.allowContentAccess = false
+                        settings.allowFileAccessFromFileURLs = false
+                        settings.allowUniversalAccessFromFileURLs = false
                         settings.blockNetworkLoads = true
+                        settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            settings.safeBrowsingEnabled = true
+                        }
                         settings.loadsImagesAutomatically = true
                         overScrollMode = View.OVER_SCROLL_NEVER
                         isVerticalScrollBarEnabled = false
