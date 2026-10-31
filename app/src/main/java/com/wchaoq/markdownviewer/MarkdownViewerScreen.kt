@@ -13,7 +13,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -129,10 +128,21 @@ internal fun MarkdownViewerScreen(
                                     activeMatch = 0
                                 }
                             },
-                            modifier = Modifier.width(190.dp),
+                            modifier = Modifier.width(128.dp),
                             singleLine = true,
                             placeholder = { Text("搜索文档") },
-                            textStyle = MaterialTheme.typography.bodyLarge
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    webView?.clearMatches()
+                                    searchMode = false
+                                    searchQuery = ""
+                                    activeMatch = 0
+                                    matchCount = 0
+                                }) {
+                                    Icon(Icons.Filled.Close, contentDescription = "关闭搜索")
+                                }
+                            },
+                            textStyle = MaterialTheme.typography.bodyMedium
                         )
                     } else {
                         Text(
@@ -146,7 +156,7 @@ internal fun MarkdownViewerScreen(
                     if (searchMode) {
                         Text(
                             text = "第${if (matchCount == 0) 0 else activeMatch}项，共${matchCount}项",
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelSmall,
                             maxLines = 1
                         )
                         IconButton(
@@ -160,15 +170,6 @@ internal fun MarkdownViewerScreen(
                             onClick = { webView?.findNext(true) }
                         ) {
                             Icon(Icons.Filled.NavigateNext, contentDescription = "下一项")
-                        }
-                        IconButton(onClick = {
-                            webView?.clearMatches()
-                            searchMode = false
-                            searchQuery = ""
-                            matchCount = 0
-                            activeMatch = 0
-                        }) {
-                            Icon(Icons.Filled.Close, contentDescription = "关闭搜索")
                         }
                     } else {
                         IconButton(onClick = {
