@@ -29,7 +29,8 @@ class MarkdownHtmlRendererTest {
         )
 
         assertTrue(html.contains("type=\"checkbox\""))
-        assertTrue(html.contains("<del>Removed text</del>"))
+        assertTrue(html.contains("<span class=\"user-del\">Removed text</span>"))
+        assertTrue(html.contains(".user-del { text-decoration: line-through; }"))
     }
 
     @Test
