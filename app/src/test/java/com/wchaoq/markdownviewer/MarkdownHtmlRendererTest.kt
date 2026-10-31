@@ -61,7 +61,7 @@ class MarkdownHtmlRendererTest {
     @Test
     fun appliesResponsiveStylesForWideContent() {
         val html = MarkdownHtmlRenderer.render(
-            "| A very wide heading | Another heading |\\n| --- | --- |\\n| a long value | another long value |\\n\\n```\\nA very long code line that should remain horizontally scrollable.\\n```",
+            "| A very wide heading | Another heading |\n| --- | --- |\n| a long value | another long value |\n\n```\nA very long code line that should remain horizontally scrollable.\n```",
             false
         )
 
