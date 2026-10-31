@@ -18,6 +18,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +43,17 @@ internal fun MarkdownViewerScreen(
     val context = LocalContext.current
     val darkTheme = isSystemInDarkTheme()
     val background = if (darkTheme) Color(0xFF121212) else Color(0xFFFFFBFE)
+    var renderedHtml by remember(markdown, darkTheme) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(markdown, darkTheme) {
+        renderedHtml = if (markdown == null) {
+            null
+        } else {
+            withContext(Dispatchers.Default) {
+                MarkdownHtmlRenderer.render(markdown, darkTheme)
+            }
+        }
+    }
 
     Scaffold(
         containerColor = background,
@@ -58,7 +76,7 @@ internal fun MarkdownViewerScreen(
                 Text(error)
             }
 
-            markdown == null -> Box(
+            markdown == null || renderedHtml == null -> Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
@@ -94,8 +112,12 @@ internal fun MarkdownViewerScreen(
                             ): Boolean = handleLink(Uri.parse(url))
 
                             private fun handleLink(uri: Uri): Boolean {
-                                // Let WebView handle in-document anchors such as #section.
-                                if (uri.scheme == null && uri.fragment != null) return false
+                                // The synthetic base URL keeps same-document heading links local.
+                                if (
+                                    uri.host == LOCAL_DOCUMENT_HOST &&
+                                    uri.fragment != null &&
+                                    (uri.path.isNullOrEmpty() || uri.path == "/")
+                                ) return false
 
                                 return when (uri.scheme?.lowercase()) {
                                     "http", "https", "mailto" -> {
@@ -111,15 +133,27 @@ internal fun MarkdownViewerScreen(
                     }
                 },
                 update = { webView ->
-                    webView.loadDataWithBaseURL(
-                        "https://markdown-viewer.invalid/",
-                        MarkdownHtmlRenderer.render(markdown, darkTheme),
-                        "text/html",
-                        "UTF-8",
-                        null
-                    )
+                    val html = renderedHtml
+                    if (html != null && webView.tag !== html) {
+                        webView.tag = html
+                        webView.loadDataWithBaseURL(
+                            LOCAL_DOCUMENT_BASE_URL,
+                            html,
+                            "text/html",
+                            "UTF-8",
+                            null
+                        )
+                    }
+                },
+                onRelease = { webView ->
+                    webView.stopLoading()
+                    webView.webViewClient = WebViewClient()
+                    webView.destroy()
                 }
             )
         }
     }
 }
+
+private const val LOCAL_DOCUMENT_HOST = "markdown-viewer.invalid"
+private const val LOCAL_DOCUMENT_BASE_URL = "https://markdown-viewer.invalid/"
