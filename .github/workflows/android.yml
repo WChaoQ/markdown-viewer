@@ -1,10 +1,6 @@
 name: Android CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -38,7 +34,6 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # The legacy `tools` package was removed from the Android SDK repository.
           packages: platform-tools
 
       - name: Install Android SDK packages
