@@ -100,7 +100,7 @@ class MarkdownViewerActivity : ComponentActivity() {
             output.toByteArray()
         } ?: throw IOException("The selected document could not be opened.")
 
-        val content = bytes.toString(Charsets.UTF_8.name()).removePrefix("\uFEFF")
+        val content = bytes.toString(Charsets.UTF_8).removePrefix("\uFEFF")
         return fileName to content
     }
 
