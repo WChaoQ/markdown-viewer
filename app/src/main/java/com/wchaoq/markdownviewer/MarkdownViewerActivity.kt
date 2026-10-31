@@ -6,8 +6,11 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +29,7 @@ class MarkdownViewerActivity : ComponentActivity() {
         val incomingUri = intent?.data
 
         setContent {
+            val darkTheme = isSystemInDarkTheme()
             var state by remember { mutableStateOf<ViewerState>(ViewerState.Loading) }
 
             LaunchedEffect(incomingUri) {
@@ -44,7 +48,9 @@ class MarkdownViewerActivity : ComponentActivity() {
                 }
             }
 
-            MaterialTheme {
+            MaterialTheme(
+                colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
+            ) {
                 Surface(color = Color.Transparent) {
                     when (val current = state) {
                         ViewerState.Loading -> MarkdownViewerScreen(
