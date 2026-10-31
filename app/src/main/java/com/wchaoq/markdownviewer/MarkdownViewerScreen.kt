@@ -37,8 +37,7 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun MarkdownViewerScreen(
     title: String,
-    markdown: String?,
-    error: String? = null
+    markdown: String?
 ) {
     val context = LocalContext.current
     val darkTheme = isSystemInDarkTheme()
@@ -69,13 +68,6 @@ internal fun MarkdownViewerScreen(
         }
     ) { innerPadding ->
         when {
-            error != null -> Box(
-                modifier = Modifier.fillMaxSize().padding(innerPadding).padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(error)
-            }
-
             markdown == null || renderedHtml == null -> Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
