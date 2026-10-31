@@ -13,18 +13,27 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FindInPage
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NavigateBefore
+import androidx.compose.material.icons.filled.NavigateNext
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,16 +42,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -56,14 +69,24 @@ internal fun MarkdownViewerScreen(
 ) {
     val context = LocalContext.current
     val activity = context.findActivity()
-    val darkTheme = isSystemInDarkTheme()
-    val background = if (darkTheme) Color(0xFF121212) else Color(0xFFFFFBFE)
+    val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val background = MaterialTheme.colorScheme.surface
     var renderedHtml by remember(markdown, darkTheme) { mutableStateOf<String?>(null) }
     var webView by remember { mutableStateOf<WebView?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
-    var searchDialogVisible by remember { mutableStateOf(false) }
+    var searchMode by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var activeMatch by remember { mutableIntStateOf(0) }
+    var matchCount by remember { mutableIntStateOf(0) }
     var aboutDialogVisible by remember { mutableStateOf(false) }
+
+    SideEffect {
+        activity?.window?.let { window ->
+            window.statusBarColor = background.toArgb()
+            WindowCompat.getInsetsController(window, window.decorView)
+                .isAppearanceLightStatusBars = !darkTheme
+        }
+    }
 
     LaunchedEffect(markdown, darkTheme) {
         renderedHtml = if (markdown == null) null else {
@@ -79,72 +102,133 @@ internal fun MarkdownViewerScreen(
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = { activity?.finish() }) {
-                        Text("‹", modifier = Modifier.size(28.dp), maxLines = 1)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "退出"
+                        )
                     }
                 },
                 title = {
-                    Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (searchMode) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = {
+                                searchQuery = it
+                                activeMatch = 0
+                                if (it.isBlank()) {
+                                    matchCount = 0
+                                    webView?.clearMatches()
+                                } else {
+                                    webView?.findAllAsync(it)
+                                }
+                            },
+                            modifier = Modifier.width(190.dp),
+                            singleLine = true,
+                            placeholder = { Text("搜索文档") },
+                            textStyle = MaterialTheme.typography.bodyLarge
+                        )
+                    } else {
+                        Text(
+                            text = title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            searchQuery = ""
-                            searchDialogVisible = true
-                        }
-                    ) {
-                        Text("⌕", maxLines = 1)
-                    }
-                    Box {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Text("⋮", maxLines = 1)
-                        }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
+                    if (searchMode) {
+                        Text(
+                            text = "第${if (matchCount == 0) 0 else activeMatch}项，共${matchCount}项",
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
+                        )
+                        IconButton(
+                            enabled = matchCount > 0,
+                            onClick = { webView?.findNext(false) }
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("发送文件") },
-                                onClick = {
-                                    menuExpanded = false
-                                    documentUri?.let { shareDocument(context, it, title) }
-                                }
+                            Icon(Icons.Filled.NavigateBefore, contentDescription = "上一项")
+                        }
+                        IconButton(
+                            enabled = matchCount > 0,
+                            onClick = { webView?.findNext(true) }
+                        ) {
+                            Icon(Icons.Filled.NavigateNext, contentDescription = "下一项")
+                        }
+                        IconButton(onClick = {
+                            webView?.clearMatches()
+                            searchMode = false
+                            searchQuery = ""
+                            matchCount = 0
+                            activeMatch = 0
+                        }) {
+                            Icon(Icons.Filled.Close, contentDescription = "关闭搜索")
+                        }
+                    } else {
+                        IconButton(onClick = {
+                            searchMode = true
+                            searchQuery = ""
+                            activeMatch = 0
+                            matchCount = 0
+                        }) {
+                            Icon(
+                                Icons.Filled.FindInPage,
+                                contentDescription = "搜索文档"
                             )
-                            DropdownMenuItem(
-                                text = { Text("打开方式") },
-                                onClick = {
-                                    menuExpanded = false
-                                    documentUri?.let { openWith(context, it) }
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("打印") },
-                                onClick = {
-                                    menuExpanded = false
-                                    webView?.let { view ->
-                                        runCatching {
-                                            val printManager = context.getSystemService(
-                                                Context.PRINT_SERVICE
-                                            ) as PrintManager
-                                            printManager.print(
-                                                title,
-                                                view.createPrintDocumentAdapter(title),
-                                                null
-                                            )
+                        }
+                        Box {
+                            IconButton(onClick = { menuExpanded = true }) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = "更多")
+                            }
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("发送文件") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        documentUri?.let { shareDocument(context, it, title) }
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("打开方式") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        documentUri?.let { openWith(context, it) }
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("打印") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        webView?.let { view ->
+                                            runCatching {
+                                                val printManager = context.getSystemService(
+                                                    Context.PRINT_SERVICE
+                                                ) as PrintManager
+                                                printManager.print(
+                                                    title,
+                                                    view.createPrintDocumentAdapter(title),
+                                                    null
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("关于此查看器") },
-                                onClick = {
-                                    menuExpanded = false
-                                    aboutDialogVisible = true
-                                }
-                            )
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("关于此查看器") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        aboutDialogVisible = true
+                                    }
+                                )
+                            }
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = background)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = background
+                )
             )
         }
     ) { innerPadding ->
@@ -160,6 +244,12 @@ internal fun MarkdownViewerScreen(
                 factory = { viewContext ->
                     WebView(viewContext).apply {
                         webView = this
+                        setFindListener { active, numberOfMatches, isDoneCounting ->
+                            if (isDoneCounting) {
+                                activeMatch = if (numberOfMatches == 0) 0 else active + 1
+                                matchCount = numberOfMatches
+                            }
+                        }
                         setBackgroundColor(
                             AndroidColor.parseColor(if (darkTheme) "#121212" else "#FFFBFE")
                         )
@@ -228,6 +318,9 @@ internal fun MarkdownViewerScreen(
                             null
                         )
                     }
+                    if (searchMode && searchQuery.isNotBlank()) {
+                        // The query is applied by the text-field callback.
+                    }
                 },
                 onRelease = { view ->
                     webView = null
@@ -239,47 +332,15 @@ internal fun MarkdownViewerScreen(
         }
     }
 
-    if (searchDialogVisible) {
-        AlertDialog(
-            onDismissRequest = {
-                webView?.clearMatches()
-                searchDialogVisible = false
-            },
-            title = { Text("搜索文档") },
-            text = {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = {
-                        searchQuery = it
-                        if (it.isBlank()) webView?.clearMatches()
-                        else webView?.findAllAsync(it)
-                    },
-                    singleLine = true,
-                    label = { Text("搜索内容") }
-                )
-            },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = { webView?.findNext(false) }) {
-                        Text("上一个")
-                    }
-                    TextButton(onClick = { webView?.findNext(true) }) {
-                        Text("下一个")
-                    }
-                    TextButton(onClick = {
-                        webView?.clearMatches()
-                        searchDialogVisible = false
-                    }) {
-                        Text("完成")
-                    }
-                }
-            }
-        )
-    }
-
     if (aboutDialogVisible) {
         AlertDialog(
             onDismissRequest = { aboutDialogVisible = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Description,
+                    contentDescription = null
+                )
+            },
             title = { Text("Markdown Viewer") },
             text = { Text("一个简洁、只读的 Markdown 文档查看器。") },
             confirmButton = {
