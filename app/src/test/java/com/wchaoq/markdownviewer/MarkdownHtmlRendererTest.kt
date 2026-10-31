@@ -59,6 +59,30 @@ class MarkdownHtmlRendererTest {
     }
 
     @Test
+    fun appliesResponsiveStylesForWideContent() {
+        val html = MarkdownHtmlRenderer.render(
+            "| A very wide heading | Another heading |\\n| --- | --- |\\n| a long value | another long value |\\n\\n```\\nA very long code line that should remain horizontally scrollable.\\n```",
+            false
+        )
+
+        assertTrue(html.contains("overflow-x: auto"))
+        assertTrue(html.contains("max-width: 100%"))
+        assertTrue(html.contains("white-space: pre"))
+        assertTrue(html.contains("viewport"))
+    }
+
+    @Test
+    fun usesMatchingLightAndDarkColorSchemes() {
+        val lightHtml = MarkdownHtmlRenderer.render("# Theme", false)
+        val darkHtml = MarkdownHtmlRenderer.render("# Theme", true)
+
+        assertTrue(lightHtml.contains("color-scheme: light"))
+        assertTrue(lightHtml.contains("#FFFBFE"))
+        assertTrue(darkHtml.contains("color-scheme: dark"))
+        assertTrue(darkHtml.contains("#121212"))
+    }
+
+    @Test
     fun preservesTextThatLooksLikeTemplatePlaceholders() {
         val markdown = "BG FG LINK CODE SURFACE BORDER COLOR_SCHEME HTML_BODY"
         val html = MarkdownHtmlRenderer.render(markdown, false)
