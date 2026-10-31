@@ -22,6 +22,29 @@ class MarkdownHtmlRendererTest {
     }
 
     @Test
+    fun rendersGfmTaskListsAndStrikethrough() {
+        val html = MarkdownHtmlRenderer.render(
+            "- [x] Completed\n- [ ] Pending\n\n~~Removed text~~",
+            false
+        )
+
+        assertTrue(html.contains("type=\"checkbox\""))
+        assertTrue(html.contains("<del>Removed text</del>"))
+    }
+
+    @Test
+    fun rendersFencedCodeBlocksAndAutolinks() {
+        val html = MarkdownHtmlRenderer.render(
+            "```kotlin\nval answer = 42\n```\n\nhttps://example.com",
+            false
+        )
+
+        assertTrue(html.contains("<pre>"))
+        assertTrue(html.contains("val answer = 42"))
+        assertTrue(html.contains("href=\"https://example.com\""))
+    }
+
+    @Test
     fun preservesTextThatLooksLikeTemplatePlaceholders() {
         val markdown = "BG FG LINK CODE SURFACE BORDER COLOR_SCHEME HTML_BODY"
         val html = MarkdownHtmlRenderer.render(markdown, false)
