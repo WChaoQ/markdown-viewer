@@ -72,6 +72,7 @@ internal fun MarkdownViewerScreen(
     val activity = context.findActivity()
     val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
     val background = MaterialTheme.colorScheme.surface
+    var parsedMarkdown by remember(markdown) { mutableStateOf<ParsedMarkdown?>(null) }
     var renderedHtml by remember(markdown, darkTheme) { mutableStateOf<String?>(null) }
     var webView by remember { mutableStateOf<WebView?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -89,10 +90,19 @@ internal fun MarkdownViewerScreen(
         }
     }
 
-    LaunchedEffect(markdown, darkTheme) {
-        renderedHtml = if (markdown == null) null else {
+    LaunchedEffect(markdown) {
+        parsedMarkdown = if (markdown == null) null else {
             withContext(Dispatchers.Default) {
-                MarkdownHtmlRenderer.render(markdown, darkTheme)
+                MarkdownHtmlRenderer.parse(markdown)
+            }
+        }
+    }
+
+    LaunchedEffect(parsedMarkdown, darkTheme) {
+        val document = parsedMarkdown
+        renderedHtml = if (document == null) null else {
+            withContext(Dispatchers.Default) {
+                MarkdownHtmlRenderer.render(document, darkTheme)
             }
         }
     }
