@@ -7,11 +7,30 @@ import org.intellij.markdown.parser.MarkdownParser
 internal data class ParsedMarkdown internal constructor(val bodyHtml: String)
 
 internal object MarkdownHtmlRenderer {
+    private fun normalizeLineEndings(markdown: String): String {
+        val start = if (markdown.startsWith("\uFEFF")) 1 else 0
+        val firstCarriageReturn = markdown.indexOf('\r', start)
+        if (start == 0 && firstCarriageReturn < 0) return markdown
+
+        val normalized = StringBuilder(markdown.length - start)
+        var index = start
+        while (index < markdown.length) {
+            val character = markdown[index]
+            if (character == '\r') {
+                normalized.append('\n')
+                if (index + 1 < markdown.length && markdown[index + 1] == '\n') {
+                    index++
+                }
+            } else {
+                normalized.append(character)
+            }
+            index++
+        }
+        return normalized.toString()
+    }
+
     fun parse(markdown: String): ParsedMarkdown {
-        val source = markdown
-            .removePrefix("\uFEFF")
-            .replace("\r\n", "\n")
-            .replace("\r", "\n")
+        val source = normalizeLineEndings(markdown)
 
         val flavour = GFMFlavourDescriptor()
         val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(source)
