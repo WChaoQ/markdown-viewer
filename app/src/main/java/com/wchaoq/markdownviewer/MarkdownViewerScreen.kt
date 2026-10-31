@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -101,6 +100,7 @@ internal fun MarkdownViewerScreen(
     LaunchedEffect(searchMode, searchQuery, webView) {
         val currentWebView = webView ?: return@LaunchedEffect
         if (searchMode && searchQuery.isNotBlank()) {
+            currentWebView.clearMatches()
             currentWebView.findAllAsync(searchQuery)
         } else {
             currentWebView.clearMatches()
@@ -133,7 +133,7 @@ internal fun MarkdownViewerScreen(
                                     activeMatch = 0
                                 }
                             },
-                            modifier = Modifier.width(144.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             placeholder = { Text("搜索文档") },
                             trailingIcon = {
@@ -340,6 +340,8 @@ internal fun MarkdownViewerScreen(
                 onRelease = { view ->
                     webView = null
                     view.stopLoading()
+                    view.clearMatches()
+                    view.setFindListener(null)
                     view.webViewClient = WebViewClient()
                     view.destroy()
                 }
