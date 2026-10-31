@@ -28,6 +28,8 @@ internal object MarkdownHtmlRenderer {
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+              <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+              <meta name="referrer" content="no-referrer">
               <style>
                 :root { color-scheme: $colorScheme; }
                 * { box-sizing: border-box; }
