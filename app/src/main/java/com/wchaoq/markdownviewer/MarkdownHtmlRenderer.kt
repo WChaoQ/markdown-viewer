@@ -29,47 +29,38 @@ internal object MarkdownHtmlRenderer {
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
               <style>
-                :root { color-scheme: COLOR_SCHEME; }
+                :root { color-scheme: $colorScheme; }
                 * { box-sizing: border-box; }
-                html { background: BG; }
+                html { background: ${colors.background}; }
                 body {
-                  margin: 0; padding: 22px 20px 40px; color: FG; background: BG;
+                  margin: 0; padding: 22px 20px 40px; color: ${colors.foreground}; background: ${colors.background};
                   font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Noto Sans", sans-serif;
                   font-size: 16px; line-height: 1.72; overflow-wrap: anywhere;
                   -webkit-text-size-adjust: 100%;
                 }
-                h1, h2, h3, h4, h5, h6 { color: FG; line-height: 1.3; font-weight: 650; margin: 1.55em 0 0.65em; }
+                h1, h2, h3, h4, h5, h6 { color: ${colors.foreground}; line-height: 1.3; font-weight: 650; margin: 1.55em 0 0.65em; }
                 h1 { font-size: 1.85em; margin-top: 0.25em; }
-                h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid BORDER; }
+                h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid ${colors.border}; }
                 h3 { font-size: 1.25em; }
                 p { margin: 0.85em 0; }
-                a { color: LINK; text-decoration: underline; text-underline-offset: 2px; }
-                blockquote { margin: 1em 0; padding: 0.15em 0 0.15em 1em; color: MUTED; border-left: 3px solid LINK; }
-                pre { overflow-x: auto; padding: 14px; border-radius: 12px; background: SURFACE; border: 1px solid BORDER; line-height: 1.55; white-space: pre; }
-                code { font-family: "Roboto Mono", "Droid Sans Mono", monospace; font-size: 0.88em; color: CODE; }
-                pre code { color: FG; font-size: 0.85em; }
+                a { color: ${colors.link}; text-decoration: underline; text-underline-offset: 2px; }
+                blockquote { margin: 1em 0; padding: 0.15em 0 0.15em 1em; color: ${colors.muted}; border-left: 3px solid ${colors.link}; }
+                pre { overflow-x: auto; padding: 14px; border-radius: 12px; background: ${colors.surface}; border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre; }
+                code { font-family: "Roboto Mono", "Droid Sans Mono", monospace; font-size: 0.88em; color: ${colors.code}; }
+                pre code { color: ${colors.foreground}; font-size: 0.85em; }
                 ul, ol { padding-left: 1.55em; }
                 li { padding-left: 0.15em; margin: 0.25em 0; }
-                hr { border: 0; border-top: 1px solid BORDER; margin: 1.8em 0; }
+                hr { border: 0; border-top: 1px solid ${colors.border}; margin: 1.8em 0; }
                 table { border-collapse: collapse; display: block; width: 100%; overflow-x: auto; margin: 1em 0; }
-                th, td { border: 1px solid BORDER; padding: 8px 10px; text-align: left; }
-                th { background: SURFACE; font-weight: 650; }
+                th, td { border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left; }
+                th { background: ${colors.surface}; font-weight: 650; }
                 img { max-width: 100%; height: auto; border-radius: 8px; }
                 input[type=checkbox] { margin-right: 0.5em; }
               </style>
             </head>
-            <body>HTML_BODY</body>
+            <body>$body</body>
             </html>
         """.trimIndent()
-            .replace("COLOR_SCHEME", colorScheme)
-            .replace("BG", colors.background)
-            .replace("FG", colors.foreground)
-            .replace("MUTED", colors.muted)
-            .replace("SURFACE", colors.surface)
-            .replace("BORDER", colors.border)
-            .replace("LINK", colors.link)
-            .replace("CODE", colors.code)
-            .replace("HTML_BODY", body)
     }
 
     private data class CssColors(
