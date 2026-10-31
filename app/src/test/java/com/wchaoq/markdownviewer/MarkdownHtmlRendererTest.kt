@@ -44,6 +44,20 @@ class MarkdownHtmlRendererTest {
         assertTrue(html.contains("href=\"https://example.com\""))
     }
 
+
+    @Test
+    fun appliesRestrictiveContentSecurityPolicy() {
+        val html = MarkdownHtmlRenderer.render("# Local document", false)
+
+        assertTrue(html.contains("Content-Security-Policy"))
+        assertTrue(html.contains("default-src 'none'"))
+        assertTrue(html.contains("img-src data:"))
+        assertTrue(html.contains("object-src 'none'"))
+        assertTrue(html.contains("frame-src 'none'"))
+        assertTrue(html.contains("form-action 'none'"))
+        assertTrue(html.contains("name=\"referrer\" content=\"no-referrer\""))
+    }
+
     @Test
     fun preservesTextThatLooksLikeTemplatePlaceholders() {
         val markdown = "BG FG LINK CODE SURFACE BORDER COLOR_SCHEME HTML_BODY"
