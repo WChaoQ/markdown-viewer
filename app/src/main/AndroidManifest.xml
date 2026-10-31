@@ -4,6 +4,7 @@
     <application
         android:allowBackup="false"
         android:label="Markdown Viewer"
+        android:icon="@drawable/ic_markdown_document_app"
         android:supportsRtl="true"
         android:theme="@style/Theme.MarkdownViewer"
         android:usesCleartextTraffic="false">
