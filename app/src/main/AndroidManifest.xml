@@ -10,7 +10,10 @@
 
         <activity
             android:name=".MarkdownViewerActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="standard"
+            android:documentLaunchMode="always"
+            android:maxRecents="10">
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -32,7 +35,7 @@
                 <data
                     android:scheme="content"
                     android:mimeType="text/plain"
-                    android:pathPattern=".*\.md" />
+                    android:pathPattern=".*\\.md" />
             </intent-filter>
 
             <intent-filter>
@@ -41,7 +44,7 @@
                 <data
                     android:scheme="content"
                     android:mimeType="text/plain"
-                    android:pathPattern=".*\.markdown" />
+                    android:pathPattern=".*\\.markdown" />
             </intent-filter>
 
             <intent-filter>
@@ -50,7 +53,7 @@
                 <data
                     android:scheme="content"
                     android:mimeType="application/octet-stream"
-                    android:pathPattern=".*\.md" />
+                    android:pathPattern=".*\\.md" />
             </intent-filter>
 
             <intent-filter>
@@ -59,7 +62,7 @@
                 <data
                     android:scheme="content"
                     android:mimeType="application/octet-stream"
-                    android:pathPattern=".*\.markdown" />
+                    android:pathPattern=".*\\.markdown" />
             </intent-filter>
         </activity>
     </application>
