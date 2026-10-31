@@ -64,7 +64,8 @@ class MarkdownViewerActivity : ComponentActivity() {
                 Surface(color = Color.Transparent) {
                     MarkdownViewerScreen(
                         title = fileName ?: "Markdown Viewer",
-                        markdown = markdown
+                        markdown = markdown,
+                        documentUri = incomingUri
                     )
                 }
             }
