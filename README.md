@@ -36,7 +36,7 @@ The APK is produced at `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## GitHub Actions
 
-Every push and pull request builds Debug and unsigned Release APKs. A manual run is also available through **Actions → Android CI → Run workflow**. APKs are uploaded as workflow artifacts.
+Builds are manual only. Open **Actions → Android CI → Run workflow** when you explicitly want to run tests and build Debug and unsigned Release APKs. APKs are uploaded as workflow artifacts.
 
 ## Privacy and permissions
 
