@@ -4,8 +4,10 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
+internal data class ParsedMarkdown internal constructor(val bodyHtml: String)
+
 internal object MarkdownHtmlRenderer {
-    fun render(markdown: String, darkTheme: Boolean): String {
+    fun parse(markdown: String): ParsedMarkdown {
         val source = markdown
             .removePrefix("\uFEFF")
             .replace("\r\n", "\n")
@@ -13,7 +15,14 @@ internal object MarkdownHtmlRenderer {
 
         val flavour = GFMFlavourDescriptor()
         val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(source)
-        val body = HtmlGenerator(source, tree, flavour).generateHtml()
+        return ParsedMarkdown(HtmlGenerator(source, tree, flavour).generateHtml())
+    }
+
+    fun render(markdown: String, darkTheme: Boolean): String =
+        render(parse(markdown), darkTheme)
+
+    fun render(parsed: ParsedMarkdown, darkTheme: Boolean): String {
+        val body = parsed.bodyHtml
 
         val colors = if (darkTheme) {
             CssColors("#121212", "#E6E1E5", "#CAC4D0", "#211F26", "#49454F", "#D0BCFF", "#F2B8B5")
