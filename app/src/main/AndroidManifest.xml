@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="false"
+        android:label="Markdown Viewer"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MarkdownViewer"
+        android:usesCleartextTraffic="false">
+
+        <activity
+            android:name=".MarkdownViewerActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="text/markdown" />
+                <data android:scheme="file" android:mimeType="text/markdown" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="text/x-markdown" />
+                <data android:scheme="file" android:mimeType="text/x-markdown" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:scheme="content"
+                    android:mimeType="text/plain"
+                    android:pathPattern=".*\\.md" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:scheme="content"
+                    android:mimeType="text/plain"
+                    android:pathPattern=".*\\.markdown" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
