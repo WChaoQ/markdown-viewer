@@ -46,6 +46,7 @@ internal object MarkdownHtmlRenderer {
                 h3 { font-size: 1.25em; }
                 p { margin: 0.85em 0; }
                 a { color: ${colors.link}; text-decoration: underline; text-underline-offset: 2px; }
+                .user-del { text-decoration: line-through; }
                 blockquote { margin: 1em 0; padding: 0.15em 0 0.15em 1em; color: ${colors.muted}; border-left: 3px solid ${colors.link}; }
                 pre {
                   max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
