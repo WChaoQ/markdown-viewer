@@ -10,7 +10,6 @@
 
         <activity
             android:name=".MarkdownViewerActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="true">
 
             <intent-filter>
@@ -33,7 +32,7 @@
                 <data
                     android:scheme="content"
                     android:mimeType="text/plain"
-                    android:pathPattern=".*\\.md" />
+                    android:pathPattern=".*\.md" />
             </intent-filter>
 
             <intent-filter>
@@ -42,7 +41,7 @@
                 <data
                     android:scheme="content"
                     android:mimeType="text/plain"
-                    android:pathPattern=".*\\.markdown" />
+                    android:pathPattern=".*\.markdown" />
             </intent-filter>
         </activity>
     </application>
