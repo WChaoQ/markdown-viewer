@@ -9,6 +9,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        val buildTime = java.time.LocalDateTime.now(java.time.Clock.systemUTC())
+            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'"))
+        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
         applicationId = "com.wchaoq.markdownviewer"
         minSdk = 23
         targetSdk = 36
@@ -42,6 +45,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
