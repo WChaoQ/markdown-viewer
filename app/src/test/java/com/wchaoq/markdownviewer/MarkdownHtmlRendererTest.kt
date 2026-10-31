@@ -73,6 +73,19 @@ class MarkdownHtmlRendererTest {
     }
 
     @Test
+    fun reusesParsedDocumentForLightAndDarkRendering() {
+        val parsed = MarkdownHtmlRenderer.parse("# Reusable\\n\\n**Same content**")
+
+        val lightHtml = MarkdownHtmlRenderer.render(parsed, false)
+        val darkHtml = MarkdownHtmlRenderer.render(parsed, true)
+
+        assertTrue(lightHtml.contains("<h1>Reusable</h1>"))
+        assertTrue(darkHtml.contains("<h1>Reusable</h1>"))
+        assertTrue(lightHtml.contains("color-scheme: light"))
+        assertTrue(darkHtml.contains("color-scheme: dark"))
+    }
+
+    @Test
     fun usesMatchingLightAndDarkColorSchemes() {
         val lightHtml = MarkdownHtmlRenderer.render("# Theme", false)
         val darkHtml = MarkdownHtmlRenderer.render("# Theme", true)
