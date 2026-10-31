@@ -20,7 +20,7 @@ The MIME type supplied by document providers is not always consistent. The activ
 
 ## Rendering
 
-The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.jetbrains:markdown:0.7.16`) with its GFM flavour to generate HTML. A restricted WebView displays the generated document. JavaScript, network loads, file access, and content access are disabled. HTTP(S) links are handed to an external browser.
+The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.jetbrains:markdown:0.7.16`) with its GFM flavour to generate HTML. A restricted WebView displays the generated document. JavaScript, network loads, file access, and content access are disabled. The generated page also applies a restrictive Content Security Policy: scripts, frames, embedded objects, forms, remote resources, and base-URL overrides are blocked; only embedded `data:` images are permitted. A no-referrer policy prevents document URLs from being sent as referrer information. HTTP(S) links are handed to an external browser.
 
 The first version does not resolve local relative image paths. This avoids copying neighbouring files or requesting broad storage access. Remote images are also not loaded because the app does not request Internet access.
 
