@@ -12,7 +12,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -22,7 +26,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NavigateBefore
 import androidx.compose.material.icons.filled.NavigateNext
-import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.window.Dialog
+import androidx.compose.material3.Surface
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -33,7 +38,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -46,11 +50,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.viewinterop.AndroidView
@@ -109,7 +114,7 @@ internal fun MarkdownViewerScreen(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = { activity?.finish() }) {
+                    IconButton(onClick = { activity?.finishAndRemoveTask() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "退出"
@@ -128,7 +133,7 @@ internal fun MarkdownViewerScreen(
                                     activeMatch = 0
                                 }
                             },
-                            modifier = Modifier.width(128.dp),
+                            modifier = Modifier.width(144.dp),
                             singleLine = true,
                             placeholder = { Text("搜索文档") },
                             trailingIcon = {
@@ -154,11 +159,18 @@ internal fun MarkdownViewerScreen(
                 },
                 actions = {
                     if (searchMode) {
-                        Text(
-                            text = "第${if (matchCount == 0) 0 else activeMatch}项，共${matchCount}项",
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1
-                        )
+                        Column(verticalArrangement = Arrangement.Center) {
+                            Text(
+                                text = "第${if (matchCount == 0) 0 else activeMatch}项",
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            )
+                            Text(
+                                text = "共${matchCount}项",
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            )
+                        }
                         IconButton(
                             enabled = matchCount > 0,
                             onClick = { webView?.findNext(false) }
@@ -336,22 +348,45 @@ internal fun MarkdownViewerScreen(
     }
 
     if (aboutDialogVisible) {
-        AlertDialog(
-            onDismissRequest = { aboutDialogVisible = false },
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_markdown_document),
-                    contentDescription = null
-                )
-            },
-            title = { Text("Markdown Viewer") },
-            text = { Text("一个简洁、只读的 Markdown 文档查看器。") },
-            confirmButton = {
-                TextButton(onClick = { aboutDialogVisible = false }) {
-                    Text("确定")
+        val uriHandler = LocalUriHandler.current
+        Dialog(onDismissRequest = { aboutDialogVisible = false }) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RectangleShape,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text("关于此查看器", style = MaterialTheme.typography.titleLarge)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("版本", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(BuildConfig.VERSION_NAME, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("构建时间", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(BuildConfig.BUILD_TIME, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("GitHub 仓库", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = "github.com/WChaoQ/markdown-viewer",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.clickable {
+                                uriHandler.openUri("https://github.com/WChaoQ/markdown-viewer")
+                            }
+                        )
+                    }
                 }
             }
-        )
+        }
     }
 }
 
