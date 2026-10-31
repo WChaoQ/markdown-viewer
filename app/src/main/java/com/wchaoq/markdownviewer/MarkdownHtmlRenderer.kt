@@ -45,17 +45,30 @@ internal object MarkdownHtmlRenderer {
                 p { margin: 0.85em 0; }
                 a { color: ${colors.link}; text-decoration: underline; text-underline-offset: 2px; }
                 blockquote { margin: 1em 0; padding: 0.15em 0 0.15em 1em; color: ${colors.muted}; border-left: 3px solid ${colors.link}; }
-                pre { overflow-x: auto; padding: 14px; border-radius: 12px; background: ${colors.surface}; border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre; }
+                pre {
+                  max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+                  padding: 14px; border-radius: 12px; background: ${colors.surface};
+                  border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre;
+                }
                 code { font-family: "Roboto Mono", "Droid Sans Mono", monospace; font-size: 0.88em; color: ${colors.code}; }
-                pre code { color: ${colors.foreground}; font-size: 0.85em; }
+                p code, li code, td code, th code {
+                  padding: 0.12em 0.35em; border-radius: 5px; background: ${colors.surface};
+                  border: 1px solid ${colors.border};
+                }
+                pre code { padding: 0; border: 0; border-radius: 0; background: transparent; color: ${colors.foreground}; font-size: 0.85em; }
                 ul, ol { padding-left: 1.55em; }
                 li { padding-left: 0.15em; margin: 0.25em 0; }
+                li.task-list-item { list-style: none; margin-left: -1.25em; }
                 hr { border: 0; border-top: 1px solid ${colors.border}; margin: 1.8em 0; }
-                table { border-collapse: collapse; display: block; width: 100%; overflow-x: auto; margin: 1em 0; }
+                table {
+                  display: block; width: max-content; min-width: 100%; max-width: 100%;
+                  overflow-x: auto; border-collapse: collapse; margin: 1em 0;
+                  -webkit-overflow-scrolling: touch;
+                }
                 th, td { border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left; }
                 th { background: ${colors.surface}; font-weight: 650; }
-                img { max-width: 100%; height: auto; border-radius: 8px; }
-                input[type=checkbox] { margin-right: 0.5em; }
+                img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
+                input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
               </style>
             </head>
             <body>$body</body>
