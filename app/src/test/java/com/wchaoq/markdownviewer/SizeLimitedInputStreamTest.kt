@@ -18,10 +18,10 @@ class SizeLimitedInputStreamTest {
     }
 
     @Test
-    fun rejectsInputOneByteOverLimit() {
+    fun rejectsInputOneByteOverLimitWithSpecificException() {
         val input = SizeLimitedInputStream(ByteArrayInputStream(byteArrayOf(1, 2, 3)), 2)
 
-        assertThrows(IOException::class.java) { input.readBytes() }
+        assertThrows(DocumentTooLargeException::class.java) { input.readBytes() }
     }
 
     @Test
@@ -29,7 +29,14 @@ class SizeLimitedInputStreamTest {
         val input = SizeLimitedInputStream(ByteArrayInputStream(byteArrayOf(1, 2)), 1)
 
         assertEquals(1, input.read())
-        assertThrows(IOException::class.java) { input.read() }
+        assertThrows(DocumentTooLargeException::class.java) { input.read() }
+    }
+
+    @Test
+    fun rejectsOversizedInputWhenSkippingBytes() {
+        val input = SizeLimitedInputStream(ByteArrayInputStream(byteArrayOf(1, 2, 3)), 2)
+
+        assertThrows(DocumentTooLargeException::class.java) { input.skip(3) }
     }
 
     @Test
@@ -37,6 +44,13 @@ class SizeLimitedInputStreamTest {
         val input = SizeLimitedInputStream(ByteArrayInputStream(byteArrayOf()), 0)
 
         assertEquals(-1, input.read())
+    }
+
+    @Test
+    fun rejectsNegativeLimit() {
+        assertThrows(IllegalArgumentException::class.java) {
+            SizeLimitedInputStream(ByteArrayInputStream(byteArrayOf()), -1)
+        }
     }
 
     @Test
