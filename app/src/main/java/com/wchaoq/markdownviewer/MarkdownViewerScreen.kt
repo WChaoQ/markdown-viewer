@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NavigateBefore
 import androidx.compose.material.icons.filled.NavigateNext
@@ -51,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -179,7 +178,7 @@ internal fun MarkdownViewerScreen(
                             matchCount = 0
                         }) {
                             Icon(
-                                Icons.Filled.FindInPage,
+                                painter = painterResource(R.drawable.ic_document_search),
                                 contentDescription = "搜索文档"
                             )
                         }
@@ -340,7 +339,7 @@ internal fun MarkdownViewerScreen(
             onDismissRequest = { aboutDialogVisible = false },
             icon = {
                 Icon(
-                    imageVector = Icons.Filled.Description,
+                    painter = painterResource(R.drawable.ic_markdown_document),
                     contentDescription = null
                 )
             },
