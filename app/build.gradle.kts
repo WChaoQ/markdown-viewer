@@ -1,3 +1,7 @@
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -9,8 +13,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        val buildTime = java.time.LocalDateTime.now(java.time.Clock.systemUTC())
-            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'"))
+        val buildTime = LocalDateTime.now(Clock.systemUTC())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'"))
         buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
         applicationId = "com.wchaoq.markdownviewer"
         minSdk = 23
