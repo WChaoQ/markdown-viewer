@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,6 +112,9 @@ internal fun MarkdownViewerScreen(
         val currentWebView = webView ?: return@LaunchedEffect
         if (searchMode && searchQuery.isNotBlank()) {
             currentWebView.clearMatches()
+            activeMatch = 0
+            matchCount = 0
+            delay(180)
             currentWebView.findAllAsync(searchQuery)
         } else {
             currentWebView.clearMatches()
