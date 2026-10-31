@@ -88,7 +88,7 @@ internal fun MarkdownViewerScreen(
                         settings.setSupportMultipleWindows(false)
                         settings.domStorageEnabled = false
                         settings.databaseEnabled = false
-                        settings.geolocationEnabled = false
+                        settings.setGeolocationEnabled(false)
                         settings.allowFileAccess = false
                         settings.allowContentAccess = false
                         settings.allowFileAccessFromFileURLs = false
