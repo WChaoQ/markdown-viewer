@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color as AndroidColor
 import android.net.Uri
 import android.os.Build
 import android.print.PrintManager
@@ -96,6 +95,17 @@ internal fun MarkdownViewerScreen(
         }
     }
 
+    LaunchedEffect(searchMode, searchQuery, webView) {
+        val currentWebView = webView ?: return@LaunchedEffect
+        if (searchMode && searchQuery.isNotBlank()) {
+            currentWebView.findAllAsync(searchQuery)
+        } else {
+            currentWebView.clearMatches()
+            activeMatch = 0
+            matchCount = 0
+        }
+    }
+
     Scaffold(
         containerColor = background,
         topBar = {
@@ -117,9 +127,7 @@ internal fun MarkdownViewerScreen(
                                 activeMatch = 0
                                 if (it.isBlank()) {
                                     matchCount = 0
-                                    webView?.clearMatches()
-                                } else {
-                                    webView?.findAllAsync(it)
+                                    activeMatch = 0
                                 }
                             },
                             modifier = Modifier.width(190.dp),
@@ -250,9 +258,7 @@ internal fun MarkdownViewerScreen(
                                 matchCount = numberOfMatches
                             }
                         }
-                        setBackgroundColor(
-                            AndroidColor.parseColor(if (darkTheme) "#121212" else "#FFFBFE")
-                        )
+                        setBackgroundColor(background.toArgb())
                         settings.javaScriptEnabled = false
                         settings.javaScriptCanOpenWindowsAutomatically = false
                         settings.setSupportMultipleWindows(false)
@@ -317,9 +323,6 @@ internal fun MarkdownViewerScreen(
                             "UTF-8",
                             null
                         )
-                    }
-                    if (searchMode && searchQuery.isNotBlank()) {
-                        // The query is applied by the text-field callback.
                     }
                 },
                 onRelease = { view ->
