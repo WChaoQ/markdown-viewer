@@ -57,7 +57,7 @@ internal class SizeLimitedInputStream(
     private fun addBytes(count: Long) {
         bytesRead += count
         if (bytesRead > maxBytes.toLong()) {
-            throw IOException("This Markdown document is larger than 20 MB.")
+            throw DocumentTooLargeException()
         }
     }
 }
