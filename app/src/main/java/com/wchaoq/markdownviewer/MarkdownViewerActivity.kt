@@ -111,13 +111,18 @@ class MarkdownViewerActivity : ComponentActivity() {
                 .onUnmappableCharacter(CodingErrorAction.REPORT)
             InputStreamReader(SizeLimitedInputStream(input, MAX_DOCUMENT_BYTES), decoder).use { reader ->
                 val result = StringBuilder()
+                val firstCharacter = reader.read()
+                if (firstCharacter >= 0 && firstCharacter != '\uFEFF'.code) {
+                    result.append(firstCharacter.toChar())
+                }
+
                 val buffer = CharArray(DEFAULT_BUFFER_SIZE)
                 while (true) {
                     val count = reader.read(buffer)
                     if (count < 0) break
                     result.append(buffer, 0, count)
                 }
-                result.toString().removePrefix("\uFEFF")
+                result.toString()
             }
         } ?: throw IOException("Unable to open document.")
 
