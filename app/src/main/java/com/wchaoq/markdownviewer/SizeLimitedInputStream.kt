@@ -34,7 +34,7 @@ internal class SizeLimitedInputStream(
 
         val remainingPlusOne = (maxBytes.toLong() - bytesRead + 1L).coerceAtLeast(1L)
         val count = super.read(buffer, offset, minOf(length.toLong(), remainingPlusOne).toInt())
-        if (count > 0) addBytes(count)
+        if (count > 0) addBytes(count.toLong())
         return count
     }
 
