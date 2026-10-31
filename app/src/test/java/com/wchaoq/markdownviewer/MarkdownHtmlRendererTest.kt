@@ -74,7 +74,7 @@ class MarkdownHtmlRendererTest {
 
     @Test
     fun reusesParsedDocumentForLightAndDarkRendering() {
-        val parsed = MarkdownHtmlRenderer.parse("# Reusable\\n\\n**Same content**")
+        val parsed = MarkdownHtmlRenderer.parse("# Reusable\n\n**Same content**")
 
         val lightHtml = MarkdownHtmlRenderer.render(parsed, false)
         val darkHtml = MarkdownHtmlRenderer.render(parsed, true)
