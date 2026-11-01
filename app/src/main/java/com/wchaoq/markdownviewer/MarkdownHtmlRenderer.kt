@@ -6,7 +6,7 @@ import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import java.util.Locale
 
-internal data class ParsedMarkdown internal constructor(val bodyHtml: String)
+internal class ParsedMarkdown internal constructor(val bodyHtml: String)
 
 internal object MarkdownHtmlRenderer {
     private fun normalizeLineEndings(markdown: String): String {
