@@ -82,6 +82,7 @@ internal fun MarkdownViewerScreen(
     var activeMatch by remember { mutableIntStateOf(0) }
     var matchCount by remember { mutableIntStateOf(0) }
     var pendingScrollY by remember { mutableIntStateOf(0) }
+    var pageReady by remember { mutableStateOf(false) }
     var aboutDialogVisible by remember { mutableStateOf(false) }
 
     SideEffect {
@@ -109,8 +110,9 @@ internal fun MarkdownViewerScreen(
         }
     }
 
-    LaunchedEffect(searchMode, searchQuery, webView) {
+    LaunchedEffect(searchMode, searchQuery, webView, pageReady) {
         val currentWebView = webView ?: return@LaunchedEffect
+        if (!pageReady) return@LaunchedEffect
         if (searchMode && searchQuery.isNotBlank()) {
             currentWebView.clearMatches()
             activeMatch = 0
@@ -280,7 +282,7 @@ internal fun MarkdownViewerScreen(
                     WebView(viewContext).apply {
                         webView = this
                         setFindListener { active, numberOfMatches, isDoneCounting ->
-                            if (isDoneCounting && searchMode && searchQuery.isNotBlank()) {
+                            if (isDoneCounting && pageReady && searchMode && searchQuery.isNotBlank()) {
                                 activeMatch = if (numberOfMatches == 0) 0 else active + 1
                                 matchCount = numberOfMatches
                             }
@@ -309,16 +311,13 @@ internal fun MarkdownViewerScreen(
                         webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView, url: String?) {
                                 super.onPageFinished(view, url)
+                                pageReady = true
                                 val targetScrollY = pendingScrollY
                                 view.post {
                                     val maxScrollY = (view.contentHeight * view.scale - view.height)
                                         .toInt()
                                         .coerceAtLeast(0)
                                     view.scrollTo(0, targetScrollY.coerceAtMost(maxScrollY))
-                                }
-                                if (searchMode && searchQuery.isNotBlank()) {
-                                    view.clearMatches()
-                                    view.findAllAsync(searchQuery)
                                 }
                             }
 
@@ -358,6 +357,10 @@ internal fun MarkdownViewerScreen(
                     val html = renderedHtml
                     if (html != null && view.tag !== html) {
                         pendingScrollY = view.scrollY
+                        pageReady = false
+                        activeMatch = 0
+                        matchCount = 0
+                        view.clearMatches()
                         view.tag = html
                         view.loadDataWithBaseURL(
                             LOCAL_DOCUMENT_BASE_URL,
