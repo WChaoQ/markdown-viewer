@@ -138,4 +138,28 @@ class MarkdownHtmlRendererTest {
         assertTrue(html.contains("<h1>First</h1>"))
         assertTrue(html.contains("<p>Second\nThird</p>"))
     }
+    @Test
+    fun includesLocalMathAndMermaidRenderers() {
+        val html = MarkdownHtmlRenderer.render(
+            "Inline: \\$x^2\\$\\n\\n```mermaid\\nflowchart TD\\n A --> B\\n```",
+            false
+        )
+        assertTrue(html.contains("/assets/markdown/katex/katex.min.js"))
+        assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
+        assertTrue(html.contains("/assets/markdown/mermaid.min.js"))
+        assertTrue(html.contains("script-src 'self'"))
+        assertTrue(html.contains("language-mermaid"))
+    }
+
+    @Test
+    fun sanitizesExecutableRawHtmlAndRemoteResources() {
+        val html = MarkdownHtmlRenderer.render(
+            """<script>alert(1)</script><img src="https://example.com/image.png" onerror="alert(1)">""",
+            false
+        )
+        assertTrue(!html.contains("alert(1)"))
+        assertTrue(!html.contains("https://example.com/image.png"))
+        assertTrue(html.contains("<img"))
+    }
+
 }
