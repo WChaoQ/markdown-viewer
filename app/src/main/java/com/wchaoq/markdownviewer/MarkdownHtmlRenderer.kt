@@ -3,6 +3,8 @@ package com.wchaoq.markdownviewer
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
+import org.jsoup.Jsoup
+import java.util.Locale
 
 internal data class ParsedMarkdown internal constructor(val bodyHtml: String)
 
@@ -34,7 +36,7 @@ internal object MarkdownHtmlRenderer {
 
         val flavour = GFMFlavourDescriptor()
         val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(source)
-        return ParsedMarkdown(HtmlGenerator(source, tree, flavour).generateHtml())
+        return ParsedMarkdown(sanitizeBody(HtmlGenerator(source, tree, flavour).generateHtml()))
     }
 
     fun render(markdown: String, darkTheme: Boolean): String =
@@ -58,7 +60,7 @@ internal object MarkdownHtmlRenderer {
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-              <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+              <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
               <meta name="referrer" content="no-referrer">
               <style>
                 :root { color-scheme: $colorScheme; }
@@ -101,7 +103,7 @@ internal object MarkdownHtmlRenderer {
                 th, td { border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left; }
                 th { background: ${colors.surface}; font-weight: 650; }
                 img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
-                input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
+                input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }\n                .mermaid-diagram { width: 100%; margin: 1.2em 0; overflow-x: auto; text-align: center; }\n                .mermaid-diagram svg { display: inline-block; max-width: 100%; height: auto; }\n                .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 0.35em 0; }\n                .katex { font-size: 1.05em; }
               </style>
             </head>
             <body>""".trimIndent()
@@ -112,6 +114,28 @@ internal object MarkdownHtmlRenderer {
 </html>"""
             )
         }
+    }
+
+
+    private fun sanitizeBody(html: String): String {
+        val document = Jsoup.parseBodyFragment(html)
+        document.outputSettings().prettyPrint(false)
+        document.select("script, iframe, object, embed, form, base, meta, link, style").remove()
+
+        document.body().getAllElements().forEach { element ->
+            element.attributes().asList().map { it.key }.forEach { key ->
+                val normalizedKey = key.lowercase(Locale.ROOT)
+                val normalizedValue = element.attr(key).trim().lowercase(Locale.ROOT)
+                val unsafe = normalizedKey.startsWith("on") ||
+                    normalizedKey in setOf("style", "srcset", "srcdoc", "formaction", "action", "poster", "background", "xlink:href") ||
+                    (normalizedKey == "href" && !(normalizedValue.startsWith("https://") ||
+                        normalizedValue.startsWith("http://") || normalizedValue.startsWith("mailto:") ||
+                        normalizedValue.startsWith("#"))) ||
+                    (normalizedKey == "src" && !normalizedValue.startsWith("data:image/"))
+                if (unsafe) element.removeAttr(key)
+            }
+        }
+        return document.body().html()
     }
 
     private data class CssColors(
