@@ -141,7 +141,12 @@ class MarkdownHtmlRendererTest {
     @Test
     fun includesLocalMathAndMermaidRenderers() {
         val html = MarkdownHtmlRenderer.render(
-            "Inline: \\$x^2\\$\n\n```mermaid\nflowchart TD\n A --> B\n```",
+            """Inline: $x^2$
+
+```mermaid
+flowchart TD
+ A --> B
+```""",
             false
         )
         assertTrue(html.contains("/assets/markdown/katex/katex.min.js"))
