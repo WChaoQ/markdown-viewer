@@ -71,7 +71,8 @@ internal fun MarkdownViewerScreen(
     documentUri: Uri?
 ) {
     val context = LocalContext.current
-    val activity = context.findActivity()\n    val assetLoader = remember(context) {
+    val activity = context.findActivity()
+    val assetLoader = remember(context) {
         WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
             .build()
