@@ -477,5 +477,5 @@ private data class LoadedDocument(
     val baseUrl: String
 )
 
-private const val LOCAL_DOCUMENT_HOST = "markdown-viewer.invalid"
-private const val LOCAL_DOCUMENT_BASE_URL = "https://markdown-viewer.invalid/document/"
+private const val LOCAL_DOCUMENT_HOST = "appassets.androidplatform.net"
+private const val LOCAL_DOCUMENT_BASE_URL = "https://appassets.androidplatform.net/assets/markdown/document/"
