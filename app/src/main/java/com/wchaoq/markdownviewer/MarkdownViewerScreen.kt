@@ -11,6 +11,7 @@ import android.view.View
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,7 +71,7 @@ internal fun MarkdownViewerScreen(
     documentUri: Uri?
 ) {
     val context = LocalContext.current
-    val activity = context.findActivity()
+    val activity = context.findActivity()\n    val assetLoader = remember(context) {\n        WebViewAssetLoader.Builder()\n            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))\n            .build()\n    }
     val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
     val background = MaterialTheme.colorScheme.surface
     var parsedMarkdown by remember(markdown) { mutableStateOf<ParsedMarkdown?>(null) }
@@ -288,7 +289,7 @@ internal fun MarkdownViewerScreen(
                             }
                         }
                         setBackgroundColor(background.toArgb())
-                        settings.javaScriptEnabled = false
+                        settings.javaScriptEnabled = true
                         settings.javaScriptCanOpenWindowsAutomatically = false
                         settings.setSupportMultipleWindows(false)
                         settings.domStorageEnabled = false
@@ -308,7 +309,7 @@ internal fun MarkdownViewerScreen(
                         overScrollMode = View.OVER_SCROLL_NEVER
                         isVerticalScrollBarEnabled = false
 
-                        webViewClient = object : WebViewClient() {
+                        webViewClient = object : WebViewClient() {\n                            override fun shouldInterceptRequest(\n                                view: WebView,\n                                request: WebResourceRequest\n                            ) = assetLoader.shouldInterceptRequest(request.url)\n
                             override fun onPageFinished(view: WebView, url: String?) {
                                 super.onPageFinished(view, url)
                                 val loadedDocument = view.tag as? LoadedDocument ?: return
