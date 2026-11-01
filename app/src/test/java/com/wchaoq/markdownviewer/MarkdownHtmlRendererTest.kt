@@ -1,5 +1,6 @@
 package com.wchaoq.markdownviewer
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -102,6 +103,25 @@ class MarkdownHtmlRendererTest {
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
         assertTrue(html.contains(markdown))
+    }
+
+    @Test
+    fun removesOnlyLeadingBomAndPreservesInternalBom() {
+        val markdown = "\uFEFF# First\n\nSecond\uFEFF text"
+        val html = MarkdownHtmlRenderer.render(markdown, false)
+
+        assertTrue(html.contains("<h1>First</h1>"))
+        assertTrue(html.contains("Second\uFEFF text"))
+    }
+
+    @Test
+    fun leavesUnchangedMarkdownContentIntact() {
+        val markdown = "# Plain\n\nNo carriage returns or byte-order mark."
+        val parsed = MarkdownHtmlRenderer.parse(markdown)
+        val html = MarkdownHtmlRenderer.render(parsed, false)
+
+        assertTrue(html.contains("<h1>Plain</h1>"))
+        assertTrue(html.contains("No carriage returns or byte-order mark."))
     }
 
     @Test
