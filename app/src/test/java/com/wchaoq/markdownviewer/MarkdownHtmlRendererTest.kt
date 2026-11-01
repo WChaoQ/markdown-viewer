@@ -1,10 +1,17 @@
 package com.wchaoq.markdownviewer
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MarkdownHtmlRendererTest {
+    @Test
+    fun assemblesHtmlAroundParsedBodyWithoutChangingContent() {
+        val html = MarkdownHtmlRenderer.render("# Body boundary", false)
+
+        assertTrue(html.contains("<body><h1>Body boundary</h1></body>"))
+        assertTrue(html.endsWith("</html>"))
+    }
+
     @Test
     fun rendersBasicMarkdown() {
         val html = MarkdownHtmlRenderer.render("# Hello\n\nA **bold** paragraph.", false)
