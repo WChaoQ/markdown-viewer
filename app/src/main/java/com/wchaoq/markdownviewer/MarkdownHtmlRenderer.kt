@@ -62,6 +62,11 @@ internal object MarkdownHtmlRenderer {
               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
               <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
               <meta name="referrer" content="no-referrer">
+              <link rel="stylesheet" href="/assets/markdown/katex/katex.min.css">
+              <script defer src="/assets/markdown/katex/katex.min.js"></script>
+              <script defer src="/assets/markdown/katex/auto-render.min.js"></script>
+              <script defer src="/assets/markdown/mermaid.min.js"></script>
+              <script defer src="/assets/markdown/renderer.js"></script>
               <style>
                 :root { color-scheme: $colorScheme; }
                 * { box-sizing: border-box; }
