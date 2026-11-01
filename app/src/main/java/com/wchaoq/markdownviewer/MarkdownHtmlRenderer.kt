@@ -51,6 +51,11 @@ internal object MarkdownHtmlRenderer {
             CssColors("#FFFBFE", "#1C1B1F", "#49454F", "#F3EDF7", "#CAC4D0", "#6750A4", "#8C1D18")
         }
         val colorScheme = if (darkTheme) "dark" else "light"
+        val mermaidScript = if (body.contains("language-mermaid") || body.contains("lang-mermaid")) {
+            """<script defer src="/assets/markdown/mermaid.min.js"></script>"""
+        } else {
+            ""
+        }
 
         return buildString(body.length + 4096) {
             append(
@@ -65,7 +70,7 @@ internal object MarkdownHtmlRenderer {
               <link rel="stylesheet" href="/assets/markdown/katex/katex.min.css">
               <script defer src="/assets/markdown/katex/katex.min.js"></script>
               <script defer src="/assets/markdown/katex/auto-render.min.js"></script>
-              <script defer src="/assets/markdown/mermaid.min.js"></script>
+              $mermaidScript
               <script defer src="/assets/markdown/renderer.js"></script>
               <style>
                 :root { color-scheme: $colorScheme; }
@@ -108,7 +113,11 @@ internal object MarkdownHtmlRenderer {
                 th, td { border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left; }
                 th { background: ${colors.surface}; font-weight: 650; }
                 img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
-                input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }\n                .mermaid-diagram { width: 100%; margin: 1.2em 0; overflow-x: auto; text-align: center; }\n                .mermaid-diagram svg { display: inline-block; max-width: 100%; height: auto; }\n                .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 0.35em 0; }\n                .katex { font-size: 1.05em; }
+                input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
+                .mermaid-diagram { width: 100%; margin: 1.2em 0; overflow-x: auto; text-align: center; }
+                .mermaid-diagram svg { display: inline-block; max-width: 100%; height: auto; }
+                .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 0.35em 0; }
+                .katex { font-size: 1.05em; }
               </style>
             </head>
             <body>""".trimIndent()

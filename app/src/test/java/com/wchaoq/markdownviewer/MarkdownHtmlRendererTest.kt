@@ -159,4 +159,54 @@ class MarkdownHtmlRendererTest {
         assertTrue(html.contains("<img"))
     }
 
+
+    @Test
+    fun rendersGfmAlignmentAndEscapedTablePipes() {
+        val html = MarkdownHtmlRenderer.render(
+            "| Left | Center | Right |\n|:---|:---:|---:|\n| a\\|b | middle | end |",
+            false
+        )
+        assertTrue(html.contains("<table>"))
+        assertTrue(html.contains("Left"))
+        assertTrue(html.contains("Center"))
+        assertTrue(html.contains("Right"))
+        assertTrue(html.contains("a|b"))
+    }
+
+    @Test
+    fun rendersNestedListsBlockquotesAndHorizontalRules() {
+        val html = MarkdownHtmlRenderer.render(
+            "> A quote\n>\n> - first item\n>   - nested item\n\n---\n\n1. ordered\n   1. nested",
+            false
+        )
+        assertTrue(html.contains("<blockquote>"))
+        assertTrue(html.contains("nested item"))
+        assertTrue(html.contains("<ol>"))
+        assertTrue(html.contains("<hr"))
+    }
+
+    @Test
+    fun doesNotLoadMermaidForOrdinaryMarkdown() {
+        val html = MarkdownHtmlRenderer.render("# Plain document\n\nNo diagram here.", false)
+        assertTrue(!html.contains("/assets/markdown/mermaid.min.js"))
+        assertTrue(html.contains("/assets/markdown/katex/katex.min.js"))
+    }
+
+    @Test
+    fun loadsMermaidOnlyWhenTheDocumentContainsADiagram() {
+        val fence = 96.toChar().toString().repeat(3)
+        val markdown = "## Diagram\n\n" + fence + "mermaid\nflowchart TD\n A --> B\n" + fence
+        val html = MarkdownHtmlRenderer.render(markdown, false)
+        assertTrue(html.contains("/assets/markdown/mermaid.min.js"))
+        assertTrue(html.contains("language-mermaid"))
+    }
+
+    @Test
+    fun emitsValidMultilineStylesForMathAndDiagrams() {
+        val html = MarkdownHtmlRenderer.render("# CSS", false)
+        assertTrue(html.contains(".mermaid-diagram {"))
+        assertTrue(html.contains(".katex-display {"))
+        assertTrue(!html.contains("vertical-align: middle; }\\n                .mermaid-diagram"))
+    }
+
 }
