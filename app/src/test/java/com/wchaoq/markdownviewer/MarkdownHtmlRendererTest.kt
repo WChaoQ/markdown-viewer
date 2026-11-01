@@ -140,17 +140,14 @@ class MarkdownHtmlRendererTest {
     }
     @Test
     fun includesLocalMathAndMermaidRenderers() {
-        val html = MarkdownHtmlRenderer.render(
-            """Inline: ${',
-            false
-        )
+        val markdown = "Inline: ${'$'}x^2${'$'}\n\n```mermaid\nflowchart TD\n A --> B\n```"
+        val html = MarkdownHtmlRenderer.render(markdown, false)
         assertTrue(html.contains("/assets/markdown/katex/katex.min.js"))
         assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
         assertTrue(html.contains("/assets/markdown/mermaid.min.js"))
         assertTrue(html.contains("script-src 'self'"))
         assertTrue(html.contains("language-mermaid"))
     }
-
     @Test
     fun sanitizesExecutableRawHtmlAndRemoteResources() {
         val html = MarkdownHtmlRenderer.render(
