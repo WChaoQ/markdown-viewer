@@ -311,9 +311,16 @@ internal fun MarkdownViewerScreen(
                         webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView, url: String?) {
                                 super.onPageFinished(view, url)
+                                val loadedDocument = view.tag as? LoadedDocument ?: return
+                                if (url != loadedDocument.baseUrl) return
+
                                 pageReady = true
                                 val targetScrollY = pendingScrollY
                                 view.post {
+                                    // Ignore a delayed callback if another document load has started.
+                                    if ((view.tag as? LoadedDocument)?.baseUrl != loadedDocument.baseUrl) {
+                                        return@post
+                                    }
                                     val maxScrollY = (view.contentHeight * view.scale - view.height)
                                         .toInt()
                                         .coerceAtLeast(0)
@@ -324,19 +331,25 @@ internal fun MarkdownViewerScreen(
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest
-                            ): Boolean = handleLink(request.url)
+                            ): Boolean = handleLink(view, request.url)
 
                             @Suppress("DEPRECATION")
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 url: String
-                            ): Boolean = handleLink(Uri.parse(url))
+                            ): Boolean = handleLink(view, Uri.parse(url))
 
-                            private fun handleLink(uri: Uri): Boolean {
+                            private fun handleLink(view: WebView, uri: Uri): Boolean {
+                                val currentDocumentUrl = (view.tag as? LoadedDocument)
+                                    ?.baseUrl
+                                    ?.let(Uri::parse)
                                 if (
-                                    uri.host == LOCAL_DOCUMENT_HOST &&
+                                    currentDocumentUrl != null &&
+                                    uri.scheme == currentDocumentUrl.scheme &&
+                                    uri.host == currentDocumentUrl.host &&
+                                    uri.path == currentDocumentUrl.path &&
                                     uri.fragment != null &&
-                                    (uri.path.isNullOrEmpty() || uri.path == "/")
+                                    uri.query == null
                                 ) return false
 
                                 return when (uri.scheme?.lowercase()) {
@@ -355,15 +368,18 @@ internal fun MarkdownViewerScreen(
                 update = { view ->
                     webView = view
                     val html = renderedHtml
-                    if (html != null && view.tag !== html) {
+                    val loadedDocument = view.tag as? LoadedDocument
+                    if (html != null && loadedDocument?.html != html) {
                         pendingScrollY = view.scrollY
                         pageReady = false
                         activeMatch = 0
                         matchCount = 0
                         view.clearMatches()
-                        view.tag = html
+                        val nextGeneration = (loadedDocument?.generation ?: 0) + 1
+                        val baseUrl = "$LOCAL_DOCUMENT_BASE_URL$nextGeneration/"
+                        view.tag = LoadedDocument(html, nextGeneration, baseUrl)
                         view.loadDataWithBaseURL(
-                            LOCAL_DOCUMENT_BASE_URL,
+                            baseUrl,
                             html,
                             "text/html",
                             "UTF-8",
@@ -454,5 +470,11 @@ private fun Context.findActivity(): Activity? {
     return current as? Activity
 }
 
+private data class LoadedDocument(
+    val html: String,
+    val generation: Int,
+    val baseUrl: String
+)
+
 private const val LOCAL_DOCUMENT_HOST = "markdown-viewer.invalid"
-private const val LOCAL_DOCUMENT_BASE_URL = "https://markdown-viewer.invalid/"
+private const val LOCAL_DOCUMENT_BASE_URL = "https://markdown-viewer.invalid/document/"
