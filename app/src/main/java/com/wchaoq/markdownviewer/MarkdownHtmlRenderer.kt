@@ -50,7 +50,9 @@ internal object MarkdownHtmlRenderer {
         }
         val colorScheme = if (darkTheme) "dark" else "light"
 
-        return """
+        return buildString(body.length + 4096) {
+            append(
+                """
             <!doctype html>
             <html lang="en">
             <head>
@@ -102,9 +104,15 @@ internal object MarkdownHtmlRenderer {
                 input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
               </style>
             </head>
-            <body>$body</body>
+            <body>""".trimIndent()
+            )
+            append(body)
+            append(
+                """</body>
             </html>
-        """.trimIndent()
+""".trimIndent()
+            )
+        }
     }
 
     private data class CssColors(
