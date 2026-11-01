@@ -81,6 +81,7 @@ internal fun MarkdownViewerScreen(
     var searchQuery by remember { mutableStateOf("") }
     var activeMatch by remember { mutableIntStateOf(0) }
     var matchCount by remember { mutableIntStateOf(0) }
+    var pendingScrollY by remember { mutableIntStateOf(0) }
     var aboutDialogVisible by remember { mutableStateOf(false) }
 
     SideEffect {
@@ -279,7 +280,7 @@ internal fun MarkdownViewerScreen(
                     WebView(viewContext).apply {
                         webView = this
                         setFindListener { active, numberOfMatches, isDoneCounting ->
-                            if (isDoneCounting) {
+                            if (isDoneCounting && searchMode && searchQuery.isNotBlank()) {
                                 activeMatch = if (numberOfMatches == 0) 0 else active + 1
                                 matchCount = numberOfMatches
                             }
@@ -306,6 +307,21 @@ internal fun MarkdownViewerScreen(
                         isVerticalScrollBarEnabled = false
 
                         webViewClient = object : WebViewClient() {
+                            override fun onPageFinished(view: WebView, url: String?) {
+                                super.onPageFinished(view, url)
+                                val targetScrollY = pendingScrollY
+                                view.post {
+                                    val maxScrollY = (view.contentHeight * view.scale - view.height)
+                                        .toInt()
+                                        .coerceAtLeast(0)
+                                    view.scrollTo(0, targetScrollY.coerceAtMost(maxScrollY))
+                                }
+                                if (searchMode && searchQuery.isNotBlank()) {
+                                    view.clearMatches()
+                                    view.findAllAsync(searchQuery)
+                                }
+                            }
+
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest
@@ -341,6 +357,7 @@ internal fun MarkdownViewerScreen(
                     webView = view
                     val html = renderedHtml
                     if (html != null && view.tag !== html) {
+                        pendingScrollY = view.scrollY
                         view.tag = html
                         view.loadDataWithBaseURL(
                             LOCAL_DOCUMENT_BASE_URL,
