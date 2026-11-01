@@ -70,7 +70,9 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    implementation("org.jetbrains:markdown:0.7.16")\n    implementation("androidx.webkit:webkit:1.14.0")\n    implementation("org.jsoup:jsoup:1.19.1")
+    implementation("org.jetbrains:markdown:0.7.16")
+    implementation("androidx.webkit:webkit:1.14.0")
+    implementation("org.jsoup:jsoup:1.19.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
