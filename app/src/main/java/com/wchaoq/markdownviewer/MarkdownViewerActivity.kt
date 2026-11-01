@@ -110,7 +110,8 @@ class MarkdownViewerActivity : ComponentActivity() {
                 .onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT)
             InputStreamReader(SizeLimitedInputStream(input, MAX_DOCUMENT_BYTES), decoder).use { reader ->
-                val result = StringBuilder()
+                // Reserve a small reusable buffer without over-allocating for multibyte UTF-8.
+                val result = StringBuilder(DEFAULT_BUFFER_SIZE)
                 val firstCharacter = reader.read()
                 if (firstCharacter >= 0 && firstCharacter != '\uFEFF'.code) {
                     result.append(firstCharacter.toChar())
