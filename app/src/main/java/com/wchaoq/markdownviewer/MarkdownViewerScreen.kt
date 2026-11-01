@@ -71,7 +71,11 @@ internal fun MarkdownViewerScreen(
     documentUri: Uri?
 ) {
     val context = LocalContext.current
-    val activity = context.findActivity()\n    val assetLoader = remember(context) {\n        WebViewAssetLoader.Builder()\n            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))\n            .build()\n    }
+    val activity = context.findActivity()\n    val assetLoader = remember(context) {
+        WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
+            .build()
+    }
     val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
     val background = MaterialTheme.colorScheme.surface
     var parsedMarkdown by remember(markdown) { mutableStateOf<ParsedMarkdown?>(null) }
@@ -309,7 +313,12 @@ internal fun MarkdownViewerScreen(
                         overScrollMode = View.OVER_SCROLL_NEVER
                         isVerticalScrollBarEnabled = false
 
-                        webViewClient = object : WebViewClient() {\n                            override fun shouldInterceptRequest(\n                                view: WebView,\n                                request: WebResourceRequest\n                            ) = assetLoader.shouldInterceptRequest(request.url)\n
+                        webViewClient = object : WebViewClient() {
+                            override fun shouldInterceptRequest(
+                                view: WebView,
+                                request: WebResourceRequest
+                            ) = assetLoader.shouldInterceptRequest(request.url)
+
                             override fun onPageFinished(view: WebView, url: String?) {
                                 super.onPageFinished(view, url)
                                 val loadedDocument = view.tag as? LoadedDocument ?: return
