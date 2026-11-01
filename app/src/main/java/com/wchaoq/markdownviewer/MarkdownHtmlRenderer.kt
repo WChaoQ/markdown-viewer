@@ -109,8 +109,7 @@ internal object MarkdownHtmlRenderer {
             append(body)
             append(
                 """</body>
-            </html>
-""".trimIndent()
+</html>"""
             )
         }
     }
