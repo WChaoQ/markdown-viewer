@@ -20,7 +20,7 @@ The MIME type supplied by document providers is not always consistent. The activ
 
 ## Rendering
 
-The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.jetbrains:markdown:0.7.16`) with its GFM flavour to generate HTML. A restricted WebView displays the generated document. JavaScript, network loads, file access, and content access are disabled. The generated page also applies a restrictive Content Security Policy: scripts, frames, embedded objects, forms, remote resources, and base-URL overrides are blocked; only embedded `data:` images are permitted. A no-referrer policy prevents document URLs from being sent as referrer information. HTTP(S) links are handed to an external browser.
+The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.jetbrains:markdown:0.7.16`) with its GFM flavour to generate HTML. A restricted WebView displays the generated document. JavaScript is enabled only for the app-bundled KaTeX and Mermaid renderers; WebView network loads, file access, and content access remain disabled. The generated page applies a restrictive Content Security Policy: only same-origin bundled scripts and styles, local fonts, and embedded `data:` images are permitted. Frames, embedded objects, forms, remote resources, and base-URL overrides are blocked. Raw HTML from Markdown is sanitized before display. A no-referrer policy prevents document URLs from being sent as referrer information. HTTP(S) links are handed to an external browser.
 
 The first version does not resolve local relative image paths. This avoids copying neighbouring files or requesting broad storage access. Remote images are also not loaded because the app does not request Internet access.
 
@@ -45,3 +45,11 @@ The manifest intentionally does not request storage, Internet, or notification p
 ## License
 
 The application source is licensed under Apache-2.0. JetBrains Markdown is a separate Apache-2.0 dependency.
+
+
+### Mathematics and diagrams
+
+- KaTeX renders inline math with `$...$` and `\\(...\\)`, and display math with `$$...$$` and `\\[...\\]`.
+- Mermaid fenced blocks (```mermaid) render as diagrams. Invalid diagram syntax remains visible as a code block.
+- Renderer scripts, styles, fonts, and license notices are packaged as local APK assets. Reading does not need network access and the app does not request Internet permission.
+- The first build downloads pinned renderer assets into Gradle's generated build directory; the build environment therefore needs network access.
