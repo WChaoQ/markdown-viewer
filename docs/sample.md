@@ -1,36 +1,23 @@
 # Markdown Viewer sample
 
-This sample is included for manual rendering checks.
+## Mathematics
 
-## Text formatting
+Inline: $E = mc^2$.
 
-Markdown supports **bold**, *italic*, ~~strikethrough~~, and `inline code`.
+$$
+\int_0^1 x^2 \, dx = \frac{1}{3}
+$$
 
-## Lists
+Also: \(a^2+b^2=c^2\) and \[e^{i\pi}+1=0\].
 
-- First item
-- Second item
-  - Nested item
+## Mermaid
 
-## Task list
-
-- [x] Read-only document
-- [ ] No file copy
-
-## Code
-
-```kotlin
-fun main() {
-    println("Hello, Markdown")
-}
+```mermaid
+flowchart TD
+    A["Open file"] --> B["Parse Markdown"]
+    B --> C{"Diagram?"}
+    C -->|Yes| D["Render Mermaid"]
+    C -->|No| E["Render text"]
+    D --> F["Display"]
+    E --> F
 ```
-
-## Table
-
-| Feature | Status |
-| --- | --- |
-| Common Markdown | Supported |
-| GFM tables | Supported |
-| File editing | Not supported |
-
-> The source document is never modified.
