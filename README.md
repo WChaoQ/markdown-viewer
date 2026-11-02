@@ -24,6 +24,12 @@ The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.j
 
 The first version does not resolve local relative image paths. This avoids copying neighbouring files or requesting broad storage access. Remote images are also not loaded because the app does not request Internet access.
 
+### Code blocks
+
+- Highlight.js highlights fenced code blocks with a language tag, including Kotlin, Java, Python, JavaScript, TypeScript, HTML/XML, CSS, JSON, Bash, YAML, C/C++, Rust, SQL, and other bundled common languages.
+- Code blocks show a language label and a copy action. Unknown or unlabelled languages remain readable as plain text.
+- Highlight.js scripts and GitHub-style light/dark themes are packaged as local APK assets. Code highlighting and copying work offline.
+
 ### Mathematics and diagrams
 
 - KaTeX renders inline math with `$...$` and `\\(...\\)`, and display math with `$$...$$` and `\\[...\\]`.
