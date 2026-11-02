@@ -1,5 +1,17 @@
 (() => {
   "use strict";
+  const fallbackToCode = (host, source) => {
+    const pre = document.createElement("pre");
+    const fallback = document.createElement("code");
+    fallback.textContent = source;
+    pre.appendChild(fallback);
+    host.replaceWith(pre);
+  };
+  const isMermaidErrorSvg = (svg) => {
+    if (!svg) return true;
+    const text = (svg.textContent || "").toLowerCase();
+    return text.includes("syntax error") || text.includes("error in text");
+  };
   const renderDiagrams = async () => {
     const blocks = Array.from(document.querySelectorAll(
       "pre > code.language-mermaid, pre > code.lang-mermaid, pre > code[class*='language-mermaid']"
@@ -31,13 +43,21 @@
       host.className = "mermaid-diagram";
       code.parentElement.replaceWith(host);
       try {
+        // Mermaid 11 often draws an error SVG instead of throwing.
+        if (typeof window.mermaid.parse === "function") {
+          await window.mermaid.parse(source);
+        }
         const result = await window.mermaid.render("markdown-viewer-diagram-" + index, source);
         host.innerHTML = result.svg;
+        const svg = host.querySelector("svg");
+        if (isMermaidErrorSvg(svg)) {
+          fallbackToCode(host, source);
+          continue;
+        }
         // Mermaid often emits SVG with max-width: 100%, which scales large
         // diagrams down to the viewport and prevents horizontal panning.
         // Restore the SVG's viewBox dimensions so the scroll container can
         // expose the complete diagram on narrow screens.
-        const svg = host.querySelector("svg");
         if (svg) {
           const viewBox = svg.viewBox && svg.viewBox.baseVal;
           if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
@@ -49,11 +69,7 @@
         }
         if (typeof result.bindFunctions === "function") result.bindFunctions(host);
       } catch (_) {
-        const pre = document.createElement("pre");
-        const fallback = document.createElement("code");
-        fallback.textContent = source;
-        pre.appendChild(fallback);
-        host.replaceWith(pre);
+        fallbackToCode(host, source);
       }
     }
   };
