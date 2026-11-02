@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NavigateBefore
@@ -91,6 +90,8 @@ internal fun MarkdownViewerScreen(
     var pageReady by remember { mutableStateOf(false) }
     var aboutDialogVisible by remember { mutableStateOf(false) }
 
+    BackHandler { activity?.finishAndRemoveTask() }
+
     SideEffect {
         activity?.window?.let { window ->
             window.statusBarColor = background.toArgb()
@@ -136,14 +137,6 @@ internal fun MarkdownViewerScreen(
         containerColor = background,
         topBar = {
             TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { activity?.finishAndRemoveTask() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "退出"
-                        )
-                    }
-                },
                 title = {
                     if (searchMode) {
                         OutlinedTextField(
