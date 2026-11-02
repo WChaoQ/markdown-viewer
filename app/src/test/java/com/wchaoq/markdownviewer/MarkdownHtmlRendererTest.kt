@@ -306,12 +306,13 @@ x^2 + y^2 = z^2
 
     @Test
     fun keepsDollarExpressionsInsideCodeBlocksAndInlineCodeLiteral() {
-        val markdown = "```bash\necho \"$HOME\"\necho \"$price$\"\n```\n\nInline `$value$` stays literal."
+        val dollar = '$'
+        val markdown = "```bash\\necho \"" + dollar + "HOME\"\\necho \"" + dollar + "price" + dollar + "\"\\n```\\n\\nInline `" + dollar + "value" + dollar + "` stays literal."
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
-        assertTrue(html.contains("\\$HOME"))
-        assertTrue(html.contains("\\$price\\$"))
-        assertTrue(html.contains("\\$value\\$"))
+        assertTrue(html.contains(dollar + "HOME"))
+        assertTrue(html.contains(dollar + "price" + dollar))
+        assertTrue(html.contains(dollar + "value" + dollar))
         assertTrue(html.contains("language-bash"))
     }
 }
