@@ -161,6 +161,21 @@ class MarkdownHtmlRendererTest {
 
 
     @Test
+    fun preservesLatexDelimitersBeforeMarkdownEscaping() {
+        val markdown = """Inline \(x + y\) and display:
+
+\[
+x^2 + y^2 = z^2
+\]"""
+
+        val html = MarkdownHtmlRenderer.render(markdown, false)
+
+        assertTrue(html.contains("""\(x + y\)"""))
+        assertTrue(html.contains("""\[x^2 + y^2 = z^2\]"""))
+        assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
+    }
+
+    @Test
     fun rendersGfmAlignmentAndEscapedTablePipes() {
         val html = MarkdownHtmlRenderer.render(
             "| Left | Center | Right |\n|:---|:---:|---:|\n| a\\|b | middle | end |",
@@ -171,6 +186,8 @@ class MarkdownHtmlRendererTest {
         assertTrue(html.contains("Center"))
         assertTrue(html.contains("Right"))
         assertTrue(html.contains("a|b"))
+        assertTrue(html.contains("""th[align="center"]"""))
+        assertTrue(html.contains("""td[align="right"]"""))
     }
 
     @Test
