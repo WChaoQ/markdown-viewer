@@ -162,25 +162,19 @@ class MarkdownHtmlRendererTest {
 
     @Test
     fun preservesLatexDelimitersBeforeMarkdownEscaping() {
-        val markdown = """Inline \(x + y\) and display:
+        val markdown = """Inline \\(x + y\\) and display:
 
-\[
+\\[
 x^2 + y^2 = z^2
-\]"""
+\\]"""
 
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
-        assertTrue(html.contains("""\(x + y\)"""))
-        assertTrue(
-            html.contains(
-                """\[
-x^2 + y^2 = z^2
-\]"""
-            )
-        )
+        assertTrue(html.contains("""\\(x + y\\)"""))
+        val displayMath = Regex("""\\\\\[\s*x\^2 \+ y\^2 = z\^2\s*\\\\\]""")
+        assertTrue(displayMath.containsMatchIn(html))
         assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
     }
-
     @Test
     fun rendersGfmAlignmentAndEscapedTablePipes() {
         val html = MarkdownHtmlRenderer.render(
