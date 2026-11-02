@@ -209,4 +209,17 @@ class MarkdownHtmlRendererTest {
         assertTrue(!html.contains("vertical-align: middle; }\\n                .mermaid-diagram"))
     }
 
+    @Test
+    fun removesUnsafeLinkSchemesAndInlineEventHandlers() {
+        val html = MarkdownHtmlRenderer.render(
+            """[unsafe](javascript:alert(1)) <a href="data:text/html,bad" onclick="alert(2)">link</a>""",
+            false
+        )
+
+        assertTrue(!html.contains("javascript:"))
+        assertTrue(!html.contains("data:text/html"))
+        assertTrue(!html.contains("onclick"))
+        assertTrue(html.contains(">link</a>"))
+    }
+
 }
