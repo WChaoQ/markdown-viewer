@@ -9,7 +9,16 @@
       startOnLoad: false,
       securityLevel: "strict",
       theme: getComputedStyle(document.documentElement).colorScheme === "dark" ? "dark" : "default",
-      flowchart: { htmlLabels: false }
+      flowchart: { htmlLabels: false },
+      gantt: {
+        useMaxWidth: false,
+        leftPadding: 180,
+        barHeight: 24,
+        barGap: 8,
+        topPadding: 50,
+        fontSize: 14,
+        sectionFontSize: 14
+      }
     });
     for (let index = 0; index < blocks.length; index += 1) {
       const code = blocks[index];
