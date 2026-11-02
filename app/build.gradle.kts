@@ -107,6 +107,10 @@ dependencies {
 val markdownAssetDirectory = layout.buildDirectory.dir("generated/markdownRenderer/assets")
 val markdownRendererAssets = listOf(
     "markdown/mermaid.min.js" to "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js",
+    "markdown/highlight.min.js" to "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js",
+    "markdown/highlight/styles/github.min.css" to "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/github.min.css",
+    "markdown/highlight/styles/github-dark.min.css" to "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/github-dark.min.css",
+    "markdown/licenses/Highlight.js-LICENSE.txt" to "https://cdn.jsdelivr.net/gh/highlightjs/highlight.js@11.11.1/LICENSE",
     "markdown/katex/katex.min.js" to "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js",
     "markdown/katex/auto-render.min.js" to "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js",
     "markdown/katex/katex.min.css" to "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css",
