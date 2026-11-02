@@ -213,16 +213,18 @@ x^2 + y^2 = z^2
 
     @Test
     fun keepsInlineMathAndMultilineDisplayMathDistinct() {
-        val markdown = "Inline \\$E = mc^2\\$.\n\n\\$\\$\n" +
-            "\\\\mathbf{A} = \\\\begin{pmatrix}\n" +
-            "a_{11} & a_{12} \\\\\\n" +
+        val dollar = '$'
+        val markdown = "Inline " + dollar + "E = mc^2" + dollar + ".\n\n" +
+            dollar + dollar + "\n" +
+            "\\mathbf{A} = \\begin{pmatrix}\n" +
+            "a_{11} & a_{12} \\\\\n" +
             "a_{21} & a_{22}\n" +
-            "\\\\end{pmatrix}\n\\$\\$"
+            "\\end{pmatrix}\n" + dollar + dollar
 
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
-        assertTrue(html.contains("\\$E = mc^2\\$"))
-        assertTrue(html.contains("\\\\begin{pmatrix}"))
+        assertTrue(html.contains(dollar + "E = mc^2" + dollar))
+        assertTrue(html.contains("\\begin{pmatrix}"))
         assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
     }
 
