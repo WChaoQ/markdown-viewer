@@ -227,6 +227,18 @@ x^2 + y^2 = z^2
     }
 
     @Test
+    fun keepsOnlySafeTextAlignmentStyles() {
+        val html = MarkdownHtmlRenderer.render(
+            """<table><tr><td style="text-align: center;">center</td><td style="color: red;" onclick="bad()">unsafe</td></tr></table>""",
+            false
+        )
+
+        assertTrue(html.contains("""style="text-align: center;""""))
+        assertTrue(!html.contains("color: red"))
+        assertTrue(!html.contains("onclick"))
+    }
+
+    @Test
     fun removesUnsafeLinkSchemesAndInlineEventHandlers() {
         val html = MarkdownHtmlRenderer.render(
             """[unsafe](javascript:alert(1)) <a href="data:text/html,bad" onclick="alert(2)">link</a>""",
