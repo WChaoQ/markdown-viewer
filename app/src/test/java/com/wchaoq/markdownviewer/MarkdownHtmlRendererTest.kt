@@ -217,7 +217,7 @@ x^2 + y^2 = z^2
         val markdown = "Inline " + dollar + "E = mc^2" + dollar + ".\n\n" +
             dollar + dollar + "\n" +
             "\\mathbf{A} = \\begin{pmatrix}\n" +
-            "a_{11} & a_{12} \\\n" +
+            "a_{11} & a_{12} \\n" +
             "a_{21} & a_{22}\n" +
             "\\end{pmatrix}\n" + dollar + dollar
 
@@ -261,7 +261,7 @@ x^2 + y^2 = z^2
         val html = MarkdownHtmlRenderer.render("# CSS", false)
         assertTrue(html.contains(".mermaid-diagram {"))
         assertTrue(html.contains(".katex-display {"))
-        assertTrue(!html.contains("vertical-align: middle; }\\n                .mermaid-diagram"))
+        assertTrue(!html.contains("vertical-align: middle; }\n                .mermaid-diagram"))
     }
 
     @Test
@@ -307,7 +307,7 @@ x^2 + y^2 = z^2
     @Test
     fun keepsDollarExpressionsInsideCodeBlocksAndInlineCodeLiteral() {
         val dollar = '$'
-        val markdown = "```bash\\necho \"" + dollar + "HOME\"\\necho \"" + dollar + "price" + dollar + "\"\\n```\\n\\nInline `" + dollar + "value" + dollar + "` stays literal."
+        val markdown = "```bash\necho \"" + dollar + "HOME\"\necho \"" + dollar + "price" + dollar + "\"\n```\n\nInline `" + dollar + "value" + dollar + "` stays literal."
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
         assertTrue(html.contains(dollar + "HOME"))
