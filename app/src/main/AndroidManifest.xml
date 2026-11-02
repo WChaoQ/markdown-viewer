@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
     <application
         android:allowBackup="false"
         android:label="Markdown Viewer"
@@ -8,62 +7,52 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MarkdownViewer"
         android:usesCleartextTraffic="false">
-
         <activity
             android:name=".MarkdownViewerActivity"
             android:exported="true"
             android:launchMode="standard"
             android:documentLaunchMode="always"
             android:maxRecents="10">
-
+            <!-- Only .md documents are advertised to Android. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" android:mimeType="text/markdown" />
-                <data android:scheme="file" android:mimeType="text/markdown" />
+                <data android:scheme="content" android:mimeType="text/markdown" android:pathPattern=".*\.md" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" android:mimeType="text/x-markdown" />
-                <data android:scheme="file" android:mimeType="text/x-markdown" />
+                <data android:scheme="content" android:mimeType="text/x-markdown" android:pathPattern=".*\.md" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="content"
-                    android:mimeType="text/plain"
-                    android:pathPattern=".*\\.md" />
+                <data android:scheme="content" android:mimeType="text/plain" android:pathPattern=".*\.md" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="content"
-                    android:mimeType="text/plain"
-                    android:pathPattern=".*\\.markdown" />
+                <data android:scheme="content" android:mimeType="application/octet-stream" android:pathPattern=".*\.md" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="content"
-                    android:mimeType="application/octet-stream"
-                    android:pathPattern=".*\\.md" />
+                <data android:scheme="file" android:mimeType="text/markdown" android:pathPattern=".*\.md" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="content"
-                    android:mimeType="application/octet-stream"
-                    android:pathPattern=".*\\.markdown" />
+                <data android:scheme="file" android:mimeType="text/x-markdown" android:pathPattern=".*\.md" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" android:mimeType="text/plain" android:pathPattern=".*\.md" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" android:mimeType="application/octet-stream" android:pathPattern=".*\.md" />
             </intent-filter>
         </activity>
     </application>
