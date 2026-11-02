@@ -93,7 +93,7 @@ internal object MarkdownHtmlRenderer {
                 h3 { font-size: 1.25em; }
                 p { margin: 0.85em 0; }
                 a { color: ${colors.link}; text-decoration: underline; text-underline-offset: 2px; }
-                .user-del { text-decoration: line-through; }
+                del, .user-del { text-decoration: line-through; }
                 blockquote { margin: 1em 0; padding: 0.15em 0 0.15em 1em; color: ${colors.muted}; border-left: 3px solid ${colors.link}; }
                 pre {
                   max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -119,8 +119,8 @@ internal object MarkdownHtmlRenderer {
                 th { background: ${colors.surface}; font-weight: 650; }
                 img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
                 input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
-                .mermaid-diagram { width: 100%; margin: 1.2em 0; overflow-x: auto; text-align: center; }
-                .mermaid-diagram svg { display: inline-block; max-width: 100%; height: auto; }
+                .mermaid-diagram { display: block; width: 100%; max-width: 100%; margin: 1.2em 0; overflow-x: auto; overflow-y: hidden; text-align: left; white-space: nowrap; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+                .mermaid-diagram svg { display: block; max-width: none !important; height: auto; }
                 .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 0.35em 0; }
                 .katex { font-size: 1.05em; }
               </style>
