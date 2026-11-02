@@ -1,68 +1,129 @@
 # Markdown Viewer
 
-A minimal, read-only Android Markdown viewer. It has no launcher icon or home screen: Android starts it only when another app asks to open a supported Markdown document.
+A lightweight, read-only Android app for opening Markdown documents from other apps. It has no launcher icon or home screen: Android launches it when a compatible app or file provider sends it a Markdown document.
 
-## Principles
+> **Created and built with ChatGPT (OpenAI).** The application code, UI, Markdown rendering integration, tests, and GitHub Actions build workflow were produced and refined with ChatGPT under the project owner's direction. The signed Release APK is built and verified by GitHub Actions.
 
-- Read the supplied URI for the current viewing session only.
-- Never copy the document into app storage or retain URI permissions.
-- Never edit, rename, delete, or export the source document.
-- No database, reading history, background service, boot receiver, analytics, or network permission.
-- Native Android activity and Jetpack Compose UI; JetBrains Markdown parses the document.
+## Features
 
-## Supported input
+- Open `.md` and `.markdown` files from Android file managers, cloud drives, messaging apps, and other apps that provide a document URI.
+- Read-only experience: the source file is never edited, renamed, deleted, or copied into app storage.
+- Standard Markdown and GitHub Flavored Markdown (GFM), including tables, task lists, strikethrough, and fenced code blocks.
+- Syntax highlighting for common programming languages, with a one-tap code-copy action.
+- LaTeX mathematics rendered by KaTeX:
+  - Inline: `$...$` and `\\(...\\)`
+  - Display: `$$...$$` and `\\[...\\]`
+- Mermaid fenced code blocks rendered as diagrams.
+- Light and dark appearance following the Android system theme.
+- In-document text search, previous/next match navigation, share, open-with, and print actions.
+- Offline reading: renderer scripts, styles, and fonts are bundled in the APK. The app does not need network access to display a document.
 
-- `.md` and `.markdown`
-- `text/markdown`, `text/x-markdown`
-- `text/plain` when the URI path matches a Markdown extension
+## How to use
 
-The MIME type supplied by document providers is not always consistent. The activity validates both the display name and MIME type after receiving the intent.
+1. Open a Markdown file in an Android file manager or another app.
+2. Choose **Markdown Viewer** from the available apps.
+3. Read, search, copy code, print, or share the original document using the top-bar menu.
+4. Tap the back arrow to exit the viewer.
 
-## Rendering
+The app is intentionally a viewer, not an editor or file manager. It does not maintain a library, reading history, or persistent copy of opened documents.
 
-The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.jetbrains:markdown:0.7.16`) with its GFM flavour to generate HTML. A restricted WebView displays the generated document. JavaScript is enabled for the app-bundled KaTeX renderer and, only when a Mermaid block is present, the app-bundled Mermaid renderer; WebView network loads, file access, and content access remain disabled. The generated page applies a restrictive Content Security Policy: only same-origin bundled scripts and styles, local fonts, and embedded `data:` images are permitted. Frames, embedded objects, forms, remote resources, and base-URL overrides are blocked. Raw HTML from Markdown is sanitized before display. A no-referrer policy prevents document URLs from being sent as referrer information. HTTP(S) links are handed to an external browser.
+## Supported input and limits
 
-The first version does not resolve local relative image paths. This avoids copying neighbouring files or requesting broad storage access. Remote images are also not loaded because the app does not request Internet access.
+- File extensions: `.md`, `.markdown`
+- MIME types: `text/markdown`, `text/x-markdown`
+- `text/plain` is accepted when the document name has a supported Markdown extension.
+- Maximum document size: **20 MB**.
+- Text encoding: UTF-8. A UTF-8 byte-order mark is handled; malformed UTF-8 is reported as an unsupported document.
 
-### Code blocks
+Document providers do not always report MIME types consistently, so the viewer checks both the supplied display name and MIME type.
 
-- Highlight.js highlights fenced code blocks with a language tag, including Kotlin, Java, Python, JavaScript, TypeScript, HTML/XML, CSS, JSON, Bash, YAML, C/C++, Rust, SQL, and other bundled common languages.
-- Code blocks show a language label and a copy action. Unknown or unlabelled languages remain readable as plain text.
-- Highlight.js scripts and GitHub-style light/dark themes are packaged as local APK assets. Code highlighting and copying work offline.
+## Rendering and security
 
-### Mathematics and diagrams
+The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) with its GFM flavour to parse Markdown, then displays sanitized HTML in a restricted Android WebView.
 
-- KaTeX renders inline math with `$...$` and `\\(...\\)`, and display math with `$$...$$` and `\\[...\\]`.
-- Mermaid fenced blocks (```mermaid) render as diagrams. Invalid diagram syntax remains visible as a code block.
-- Renderer scripts, styles, fonts, and license notices are packaged as local APK assets. Reading does not need network access and the app does not request Internet permission.
+- Raw HTML is sanitized before display.
+- A restrictive Content Security Policy allows only app-bundled scripts and styles, local fonts, and embedded `data:` images.
+- WebView network loads, file access, content access, geolocation, mixed content, and pop-up windows are disabled.
+- HTTP(S) and email links are opened externally; unsupported URL schemes are ignored.
+- The app does not load remote images or resolve local relative image paths. This avoids unexpected network access, broad storage access, or copying adjacent files.
+- JavaScript is used only for bundled rendering features such as syntax highlighting, KaTeX, Mermaid, and code-copy controls.
+
+### Rendering libraries
+
+| Component | Purpose |
+|---|---|
+| [JetBrains Markdown](https://github.com/JetBrains/markdown) | Markdown and GFM parsing |
+| [Highlight.js](https://highlightjs.org/) | Code syntax highlighting |
+| [KaTeX](https://katex.org/) | LaTeX mathematics |
+| [Mermaid](https://mermaid.js.org/) | Diagrams |
+| [Jsoup](https://jsoup.org/) | Sanitizing generated HTML |
+| [AndroidX WebKit](https://developer.android.com/jetpack/androidx/releases/webkit) | Serving bundled assets safely to WebView |
+| [Jetpack Compose](https://developer.android.com/compose) | Native Android interface |
+
+The corresponding third-party license notices are included in the app assets.
 
 ## Build
 
-Use Gradle 8.13 with JDK 17:
+### Local Debug build
+
+Requirements:
+
+- JDK 17
+- Gradle 8.13
+- Android SDK platform 36 and Build Tools 36.0.0
+
+Run:
 
 ```bash
 gradle assembleDebug
 ```
 
-The Debug APK is produced at `app/build/outputs/apk/debug/app-debug.apk`.
+The APK is generated at:
 
-## Signed Release APK
+```
+app/build/outputs/apk/debug/app-debug.apk
+```
 
-The Release workflow requires four GitHub Actions repository secrets:
+The build downloads the pinned renderer assets and packages them into the APK. Once built, document rendering itself works offline.
 
-- `ANDROID_KEYSTORE_BASE64`: Base64-encoded contents of your release keystore.
+### Signed Release build
+
+The repository includes a manually triggered GitHub Actions workflow:
+
+**Actions → Android Release → Run workflow**
+
+It requires these repository Actions secrets:
+
+- `ANDROID_KEYSTORE_BASE64`: Base64-encoded release keystore.
 - `ANDROID_KEYSTORE_PASSWORD`: keystore password.
-- `ANDROID_KEY_ALIAS`: `markdown-viewer`.
+- `ANDROID_KEY_ALIAS`: release key alias.
 - `ANDROID_KEY_PASSWORD`: private-key password.
 
-Never commit the keystore or passwords to the repository. Open **Settings → Secrets and variables → Actions → New repository secret** to add each value. Then open **Actions → Android Release → Run workflow**. The workflow runs unit tests, builds the signed Release APK, verifies its signature, and uploads both Debug and signed Release APK artifacts.
+Add them under **Settings → Secrets and variables → Actions**. Never commit the keystore or passwords to the repository.
 
-Release signing is applied only when the signing environment variables are present. Local builds without those values remain unsigned.
+The workflow:
+
+1. Runs the unit tests.
+2. Builds Debug and Release APKs.
+3. Verifies the Release APK signature.
+4. Uploads the Debug APK and signed Release APK as workflow artifacts.
+
+The latest build and downloadable artifacts are available from [GitHub Actions](https://github.com/WChaoQ/markdown-viewer/actions/workflows/android.yml). The signed Release artifact is retained for 90 days; the Debug artifact for 30 days.
+
+Local Release builds are unsigned unless the signing environment variables are supplied.
 
 ## Privacy and permissions
 
-The manifest intentionally does not request storage, Internet, or notification permissions. The app does not declare a `MAIN` / `LAUNCHER` activity, so it does not appear in the launcher. Android's temporary URI grant is used only for the lifetime of the open activity; no persistable grant is taken.
+The app does not request Internet, storage, or notification permissions. It does not use a database, analytics, background services, boot receivers, or persistent URI permissions.
+
+Android grants temporary access to the selected document URI for the viewing session. The app reads the content into memory and does not retain a copy in its private storage.
+
+## Project status
+
+**Version 1.0.0 — ready for everyday read-only use.**
+
+The project prioritizes reliable document opening, readable rendering, offline operation, and a small feature set over editing, synchronization, file management, or other features outside its viewer purpose.
 
 ## License
 
-The application source is licensed under Apache-2.0. JetBrains Markdown is a separate Apache-2.0 dependency.
+The application source is licensed under the Apache License 2.0. Third-party libraries and bundled assets retain their respective licenses; see the included license notices.
