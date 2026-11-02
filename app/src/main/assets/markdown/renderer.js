@@ -80,7 +80,8 @@
     const aliases = {
       js: "javascript", jsx: "javascript", ts: "typescript", tsx: "typescript",
       html: "xml", xml: "xml", sh: "bash", shell: "bash", zsh: "bash",
-      yml: "yaml", kt: "kotlin", kts: "kotlin", c++: "cpp", "c#": "csharp",
+      "c++": "cpp", "c#": "csharp",
+      yml: "yaml", kt: "kotlin", kts: "kotlin",
       md: "markdown", py: "python"
     };
     return aliases[language] || language;
