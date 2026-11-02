@@ -17,7 +17,11 @@
         barGap: 8,
         topPadding: 50,
         fontSize: 14,
-        sectionFontSize: 14
+        sectionFontSize: 14,
+        // A weekly axis is readable on compact screens; daily ticks overlap
+        // badly on short project timelines.
+        tickInterval: "1week",
+        axisFormat: "%m-%d"
       }
     });
     for (let index = 0; index < blocks.length; index += 1) {
