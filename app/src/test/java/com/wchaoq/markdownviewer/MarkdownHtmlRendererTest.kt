@@ -171,7 +171,13 @@ x^2 + y^2 = z^2
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
         assertTrue(html.contains("""\(x + y\)"""))
-        assertTrue(html.contains("""\[x^2 + y^2 = z^2\]"""))
+        assertTrue(
+            html.contains(
+                """\[
+x^2 + y^2 = z^2
+\]"""
+            )
+        )
         assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
     }
 
