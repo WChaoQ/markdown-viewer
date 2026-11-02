@@ -155,17 +155,27 @@ internal object MarkdownHtmlRenderer {
 
 
 
-    private val mathExpressionPattern = Regex(
-        """(?s)\\\[.+?\\\]|\\\(.+?\\\)|\$\$.+?\$\$|(?<!\\)\$(?!\$).+?(?<!\\)\$"""
+    // Display math may span lines. Inline math must never span a newline:
+    // otherwise currency values in adjacent GFM table rows (for example
+    // "$10,000" and "$9,500") are mistaken for one enormous math expression.
+    private val displayMathPattern = Regex(
+        """(?s)\\\\\\[.*?\\\\\\]|(?<!\\\\)\\$\\$.*?(?<!\\\\)\\$\\$"""
+    )
+    private val inlineMathPattern = Regex(
+        """\\\\\\(.*?\\\\\\)|(?<!\\\\)\\$(?!\\$)[^\\r\\n$]+?(?<!\\s)(?<!\\\\)\\$(?!\\$)"""
     )
 
     private fun protectMathExpressions(markdown: String): Pair<String, List<String>> {
         val expressions = mutableListOf<String>()
-        val protected = mathExpressionPattern.replace(markdown) { match ->
-            val token = "MARKDOWNVIEWERMATH${expressions.size}TOKEN"
-            expressions += match.value
-            token
-        }
+        fun replaceMatches(source: String, pattern: Regex): String =
+            pattern.replace(source) { match ->
+                val token = "MARKDOWNVIEWERMATH${expressions.size}TOKEN"
+                expressions += match.value
+                token
+            }
+
+        val withDisplayMath = replaceMatches(markdown, displayMathPattern)
+        val protected = replaceMatches(withDisplayMath, inlineMathPattern)
         return protected to expressions
     }
 
