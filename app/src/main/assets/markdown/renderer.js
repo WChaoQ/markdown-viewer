@@ -20,6 +20,20 @@
       try {
         const result = await window.mermaid.render("markdown-viewer-diagram-" + index, source);
         host.innerHTML = result.svg;
+        // Mermaid often emits SVG with max-width: 100%, which scales large
+        // diagrams down to the viewport and prevents horizontal panning.
+        // Restore the SVG's viewBox dimensions so the scroll container can
+        // expose the complete diagram on narrow screens.
+        const svg = host.querySelector("svg");
+        if (svg) {
+          const viewBox = svg.viewBox && svg.viewBox.baseVal;
+          if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
+            svg.style.setProperty("width", viewBox.width + "px", "important");
+            svg.style.setProperty("height", viewBox.height + "px", "important");
+          }
+          svg.style.setProperty("max-width", "none", "important");
+          svg.style.setProperty("display", "block", "important");
+        }
         if (typeof result.bindFunctions === "function") result.bindFunctions(host);
       } catch (_) {
         const pre = document.createElement("pre");
