@@ -114,12 +114,19 @@ internal object MarkdownHtmlRenderer {
                 li { padding-left: 0.15em; margin: 0.25em 0; }
                 li.task-list-item { list-style: none; margin-left: -1.25em; }
                 hr { border: 0; border-top: 1px solid ${colors.border}; margin: 1.8em 0; }
-                table {
-                  display: block; width: max-content; min-width: 100%; max-width: 100%;
-                  overflow-x: auto; border-collapse: collapse; margin: 1em 0;
-                  -webkit-overflow-scrolling: touch;
+                .table-scroll {
+                  display: block; width: 100%; max-width: 100%; overflow-x: auto;
+                  margin: 1em 0; -webkit-overflow-scrolling: touch;
+                  overscroll-behavior-x: contain;
                 }
-                th, td { border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left; }
+                table {
+                  display: table; width: max-content; min-width: 100%; max-width: none;
+                  table-layout: auto; border-collapse: collapse; margin: 0;
+                }
+                th, td {
+                  border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left;
+                  white-space: nowrap; overflow-wrap: normal; word-break: normal;
+                }
                 th[align="left"], td[align="left"], th[style*="left"], td[style*="left"] { text-align: left; }
                 th[align="center"], td[align="center"], th[style*="center"], td[style*="center"] { text-align: center; }
                 th[align="right"], td[align="right"], th[style*="right"], td[style*="right"] { text-align: right; }
@@ -193,6 +200,11 @@ internal object MarkdownHtmlRenderer {
                     (normalizedKey == "src" && !normalizedValue.startsWith("data:image/"))
                 if (unsafe) element.removeAttr(key)
             }
+        }
+        // A separate scroll viewport keeps wide GFM tables at their natural
+        // intrinsic width instead of squeezing every column into the screen.
+        document.select("table").forEach { table ->
+            table.wrap("<div class=\"table-scroll\"></div>")
         }
         return document.body().html()
     }
