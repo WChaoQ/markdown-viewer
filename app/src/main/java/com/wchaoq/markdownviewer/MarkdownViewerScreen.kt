@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.print.PrintManager
 import android.view.View
+import androidx.activity.compose.BackHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
