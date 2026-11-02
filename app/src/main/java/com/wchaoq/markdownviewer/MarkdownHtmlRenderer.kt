@@ -106,10 +106,21 @@ internal object MarkdownHtmlRenderer {
                   padding: 14px; border-radius: 12px; background: ${colors.surface};
                   border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre;
                 }
+                .code-block {
+                  max-width: 100%; margin: 1em 0; overflow: hidden;
+                  border: 1px solid ${colors.border}; border-radius: 12px;
+                  background: ${colors.surface};
+                }
+                .code-block pre {
+                  max-width: 100%; margin: 0; overflow-x: auto;
+                  border: 0; border-radius: 0; background: transparent;
+                  -webkit-overflow-scrolling: touch;
+                }
                 .code-toolbar {
                   display: flex; align-items: center; justify-content: space-between;
-                  gap: 12px; margin: -14px -14px 12px; padding: 7px 12px;
+                  gap: 12px; margin: 0; padding: 7px 12px;
                   border-bottom: 1px solid ${colors.border}; white-space: normal;
+                  background: ${colors.surface};
                   font-family: -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
                 }
                 .code-language {
