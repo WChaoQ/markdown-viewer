@@ -240,10 +240,10 @@ internal object MarkdownHtmlRenderer {
     // shell variables, template strings, currency symbols, and LaTeX-looking text;
     // none of those should be interpreted as document mathematics.
     private val fencedCodePattern = Regex(
-        """(?m)^ {0,3}(`{3,}|~{3,})[^\\n]*\\n[\\s\\S]*?^ {0,3}\\1[ \\t]*$"""
+        """(?m)^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[ \t]*$"""
     )
     private val inlineCodePattern = Regex(
-        """(?<!`) `+[^\\n`]*`+(?!`)""".replace(" ", "")
+        """(?<!`)`+[^`\n]*`+(?!`)"""
     )
 
     private fun protectCodeSegments(markdown: String, codeSegments: MutableList<String>): String {
