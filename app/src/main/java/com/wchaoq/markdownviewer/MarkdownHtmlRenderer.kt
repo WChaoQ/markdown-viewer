@@ -77,6 +77,8 @@ internal object MarkdownHtmlRenderer {
               <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
               <meta name="referrer" content="no-referrer">
               <link rel="stylesheet" href="/assets/markdown/katex/katex.min.css">
+              <link rel="stylesheet" href="/assets/markdown/highlight/styles/${if (darkTheme) "github-dark" else "github"}.min.css">
+              <script defer src="/assets/markdown/highlight.min.js"></script>
               <script defer src="/assets/markdown/katex/katex.min.js"></script>
               <script defer src="/assets/markdown/katex/auto-render.min.js"></script>
               $mermaidScript
@@ -104,6 +106,25 @@ internal object MarkdownHtmlRenderer {
                   padding: 14px; border-radius: 12px; background: ${colors.surface};
                   border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre;
                 }
+                .code-toolbar {
+                  display: flex; align-items: center; justify-content: space-between;
+                  gap: 12px; margin: -14px -14px 12px; padding: 7px 12px;
+                  border-bottom: 1px solid ${colors.border}; white-space: normal;
+                  font-family: -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+                }
+                .code-language {
+                  color: ${colors.muted}; font-family: inherit; font-size: 12px;
+                  font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+                }
+                .code-copy {
+                  appearance: none; border: 1px solid ${colors.border};
+                  border-radius: 7px; padding: 4px 10px; color: ${colors.foreground};
+                  background: ${colors.background}; font: inherit; font-size: 12px;
+                  line-height: 1.5; cursor: pointer;
+                }
+                .code-copy.copied { color: ${colors.link}; border-color: ${colors.link}; }
+                pre code.hljs { padding: 0; background: transparent; }
+                pre code { white-space: pre; }
                 code { font-family: "Roboto Mono", "Droid Sans Mono", monospace; font-size: 0.88em; color: ${colors.code}; }
                 p code, li code, td code, th code {
                   padding: 0.12em 0.35em; border-radius: 5px; background: ${colors.surface};
