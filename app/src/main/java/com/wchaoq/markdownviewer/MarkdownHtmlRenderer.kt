@@ -236,8 +236,40 @@ internal object MarkdownHtmlRenderer {
         return out.toString()
     }
 
+    // Mask code before looking for math delimiters. Code examples commonly contain
+    // shell variables, template strings, currency symbols, and LaTeX-looking text;
+    // none of those should be interpreted as document mathematics.
+    private val fencedCodePattern = Regex(
+        """(?m)^ {0,3}(`{3,}|~{3,})[^\\n]*\\n[\\s\\S]*?^ {0,3}\\1[ \\t]*$"""
+    )
+    private val inlineCodePattern = Regex(
+        """(?<!`) `+[^\\n`]*`+(?!`)""".replace(" ", "")
+    )
+
+    private fun protectCodeSegments(markdown: String, codeSegments: MutableList<String>): String {
+        fun replaceCode(source: String, pattern: Regex): String =
+            pattern.replace(source) { match ->
+                val token = "MARKDOWNVIEWERCODE${codeSegments.size}TOKEN"
+                codeSegments += match.value
+                token
+            }
+
+        val withoutFencedCode = replaceCode(markdown, fencedCodePattern)
+        return replaceCode(withoutFencedCode, inlineCodePattern)
+    }
+
+    private fun restoreCodeSegments(source: String, codeSegments: List<String>): String {
+        var restored = source
+        codeSegments.forEachIndexed { index, code ->
+            restored = restored.replace("MARKDOWNVIEWERCODE${index}TOKEN", code)
+        }
+        return restored
+    }
+
     private fun protectMathExpressions(markdown: String): Pair<String, List<String>> {
         val expressions = mutableListOf<String>()
+        val codeSegments = mutableListOf<String>()
+
         fun replaceMatches(source: String, pattern: Regex): String =
             pattern.replace(source) { match ->
                 val token = "MARKDOWNVIEWERMATH${expressions.size}TOKEN"
@@ -245,10 +277,11 @@ internal object MarkdownHtmlRenderer {
                 token
             }
 
-        val withBlocks = protectBlockDollarMath(markdown, expressions)
+        val withoutCode = protectCodeSegments(markdown, codeSegments)
+        val withBlocks = protectBlockDollarMath(withoutCode, expressions)
         val withDisplayMath = replaceMatches(withBlocks, displayMathPattern)
-        val protected = replaceMatches(withDisplayMath, inlineMathPattern)
-        return protected to expressions
+        val withInlineMath = replaceMatches(withDisplayMath, inlineMathPattern)
+        return restoreCodeSegments(withInlineMath, codeSegments) to expressions
     }
 
     private fun restoreMathExpressions(html: String, expressions: List<String>): String {
