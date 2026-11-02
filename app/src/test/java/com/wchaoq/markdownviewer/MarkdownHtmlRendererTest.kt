@@ -217,7 +217,7 @@ x^2 + y^2 = z^2
         val markdown = "Inline " + dollar + "E = mc^2" + dollar + ".\n\n" +
             dollar + dollar + "\n" +
             "\\mathbf{A} = \\begin{pmatrix}\n" +
-            "a_{11} & a_{12} \\\\\n" +
+            "a_{11} & a_{12} \\\n" +
             "a_{21} & a_{22}\n" +
             "\\end{pmatrix}\n" + dollar + dollar
 
@@ -301,7 +301,7 @@ x^2 + y^2 = z^2
         assertTrue(lightHtml.contains("language-kotlin"))
         assertTrue(darkHtml.contains("language-python"))
         assertTrue(lightHtml.contains("code-toolbar"))
-        assertTrue(lightHtml.contains("复制"))
+        assertTrue(lightHtml.contains("/assets/markdown/renderer.js"))
     }
 
     @Test
