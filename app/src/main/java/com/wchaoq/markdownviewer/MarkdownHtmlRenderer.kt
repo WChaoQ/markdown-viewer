@@ -162,10 +162,10 @@ internal object MarkdownHtmlRenderer {
     // by a line scan before the regex pass. Blockquote prefixes (> $$) are
     // recognized and stripped so KaTeX does not see them.
     private val displayMathPattern = Regex(
-        """(?s)\\[.*?\\]|(?<!\\)\$\$.*?(?<!\\)\$\$"""
+        """(?s)\\\[.*?\\\]|(?<!\\)\$\$.*?(?<!\\)\$\$"""
     )
     private val inlineMathPattern = Regex(
-        """\\(.*?\\)|(?<!\\)\$(?!\$)[^\r\n$]+?(?<!\s)(?<!\\)\$(?!\$)"""
+        """\\\(.*?\\\)|(?<!\\)\$(?!\$)[^\r\n$]+?(?<!\s)(?<!\\)\$(?!\$)"""
     )
 
     private fun stripBlockquoteMarkers(line: String): String {
