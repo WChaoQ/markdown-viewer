@@ -151,7 +151,12 @@
         }
       });
       toolbar.append(label, button);
-      pre.insertBefore(toolbar, code);
+
+      // Keep the toolbar outside the horizontally scrollable <pre>.
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block";
+      pre.replaceWith(wrapper);
+      wrapper.append(toolbar, pre);
     });
   };
 
