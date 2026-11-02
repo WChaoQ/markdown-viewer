@@ -156,23 +156,14 @@ internal object MarkdownHtmlRenderer {
     // Display math may span lines. Inline math must never span a newline:
     // otherwise currency values in adjacent GFM table rows (for example
     // "$10,000" and "$9,500") are mistaken for one enormous math expression.
-    //
-    // Opening $$ that appears in ordinary text (e.g. a heading containing "（$$）")
-    // must NOT start a match. Prefer:
-    //   1. Block form where $$ sits alone on its line
-    //   2. Single-line $$...$$ with real content between the delimiters
-    //   3. \\[...\\] (may span lines)
-    private val displayMathDollarBlockPattern = Regex(
-        """(?m)^[ \\t]*\\$\\$[ \\t]*\\n(?:.*?\\n)*?[ \\t]*\\$\\$[ \\t]*$"""
-    )
-    private val displayMathDollarSinglePattern = Regex(
-        """(?<!\\\\)\\$\\$(?!\\$)([^\\n$]+?)(?<!\\\\)\\$\\$(?!\\$)"""
-    )
-    private val displayMathBracketPattern = Regex(
-        """(?s)\\\\\\[(?:\\\\.|[^\\\\\\]])*?\\\\\\]"""
+    // Display math may span lines. Inline math must never span a newline:
+    // otherwise currency values in adjacent GFM table rows (for example
+    // "$10,000" and "$9,500") are mistaken for one enormous math expression.
+    private val displayMathPattern = Regex(
+        """(?s)\\\[.*?\\\]|(?<!\\)\$\$.*?(?<!\\)\$\$"""
     )
     private val inlineMathPattern = Regex(
-        """\\\\\\(.*?\\\\\\)|(?<!\\\\)\\$(?!\\$)[^\\r\\n$]+?(?<!\\s)(?<!\\\\)\\$(?!\\$)"""
+        """\\\(.*?\\\)|(?<!\\)\$(?!\$)[^\r\n$]+?(?<!\s)(?<!\\)\$(?!\$)"""
     )
 
     private fun protectMathExpressions(markdown: String): Pair<String, List<String>> {
@@ -184,11 +175,8 @@ internal object MarkdownHtmlRenderer {
                 token
             }
 
-        // Most specific first: block $$, then single-line $$, then \\[ \\], then inline.
-        var protected = replaceMatches(markdown, displayMathDollarBlockPattern)
-        protected = replaceMatches(protected, displayMathDollarSinglePattern)
-        protected = replaceMatches(protected, displayMathBracketPattern)
-        protected = replaceMatches(protected, inlineMathPattern)
+        val withDisplayMath = replaceMatches(markdown, displayMathPattern)
+        val protected = replaceMatches(withDisplayMath, inlineMathPattern)
         return protected to expressions
     }
 
