@@ -233,7 +233,7 @@ x^2 + y^2 = z^2
             false
         )
 
-        assertTrue(html.contains("""style="text-align: center;""""))
+        assertTrue(html.contains("""style="text-align: center;"""))
         assertTrue(!html.contains("color: red"))
         assertTrue(!html.contains("onclick"))
     }
