@@ -378,6 +378,7 @@ internal fun MarkdownViewerScreen(
                 },
                 update = { view ->
                     webView = view
+                    view.setBackgroundColor(background.toArgb())
                     val html = renderedHtml
                     val loadedDocument = view.tag as? LoadedDocument
                     if (html != null && loadedDocument?.html != html) {
@@ -487,5 +488,4 @@ private data class LoadedDocument(
     val baseUrl: String
 )
 
-private const val LOCAL_DOCUMENT_HOST = "appassets.androidplatform.net"
 private const val LOCAL_DOCUMENT_BASE_URL = "https://appassets.androidplatform.net/assets/markdown/document/"
