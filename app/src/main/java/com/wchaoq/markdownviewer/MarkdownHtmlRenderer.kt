@@ -127,7 +127,11 @@ internal object MarkdownHtmlRenderer {
                 img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
                 input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
                 .mermaid-diagram { display: block; width: 100%; max-width: 100%; margin: 1.2em 0; overflow-x: auto; overflow-y: hidden; text-align: left; white-space: nowrap; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
-                .mermaid-diagram svg { display: block; max-width: none !important; height: auto; }
+                .mermaid-diagram svg { display: block; max-width: none !important; height: auto; overflow: visible; }
+                .mermaid-diagram svg text, .mermaid-diagram foreignObject, .mermaid-diagram foreignObject * {
+                  overflow-wrap: normal !important; word-break: normal !important;
+                }
+                .mermaid-diagram foreignObject div { white-space: nowrap !important; }
                 .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 0.35em 0; }
                 .katex { font-size: 1.05em; }
               </style>
