@@ -64,9 +64,12 @@ jobs:
 
       - name: Verify Release APK signature
         run: |
+          set -euo pipefail
           APK="app/build/outputs/apk/release/app-release.apk"
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           test -s "$APK"
-          apksigner verify --verbose --print-certs "$APK"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
