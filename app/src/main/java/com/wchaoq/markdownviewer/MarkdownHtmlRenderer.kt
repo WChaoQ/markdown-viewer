@@ -38,10 +38,14 @@ internal object MarkdownHtmlRenderer {
 
     fun parse(markdown: String): ParsedMarkdown {
         val source = normalizeLineEndings(markdown)
+        val (protectedSource, mathExpressions) = protectMathExpressions(source)
 
         val flavour = GFMFlavourDescriptor()
-        val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(source)
-        return ParsedMarkdown(sanitizeBody(HtmlGenerator(source, tree, flavour).generateHtml()))
+        val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(protectedSource)
+        val sanitizedHtml = sanitizeBody(
+            HtmlGenerator(protectedSource, tree, flavour).generateHtml()
+        )
+        return ParsedMarkdown(restoreMathExpressions(sanitizedHtml, mathExpressions))
     }
 
     fun render(markdown: String, darkTheme: Boolean): String =
@@ -116,6 +120,9 @@ internal object MarkdownHtmlRenderer {
                   -webkit-overflow-scrolling: touch;
                 }
                 th, td { border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left; }
+                th[align="left"], td[align="left"], th[style*="left"], td[style*="left"] { text-align: left; }
+                th[align="center"], td[align="center"], th[style*="center"], td[style*="center"] { text-align: center; }
+                th[align="right"], td[align="right"], th[style*="right"], td[style*="right"] { text-align: right; }
                 th { background: ${colors.surface}; font-weight: 650; }
                 img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
                 input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
@@ -136,6 +143,32 @@ internal object MarkdownHtmlRenderer {
     }
 
 
+
+    private val mathExpressionPattern = Regex(
+        """(?s)\\\[.+?\\\]|\\\(.+?\\\)|\$\$.+?\$\$|(?<!\\)\$(?!\$).+?(?<!\\)\$"""
+    )
+
+    private fun protectMathExpressions(markdown: String): Pair<String, List<String>> {
+        val expressions = mutableListOf<String>()
+        val protected = mathExpressionPattern.replace(markdown) { match ->
+            val token = "MARKDOWNVIEWERMATH${expressions.size}TOKEN"
+            expressions += match.value
+            token
+        }
+        return protected to expressions
+    }
+
+    private fun restoreMathExpressions(html: String, expressions: List<String>): String {
+        var restored = html
+        expressions.forEachIndexed { index, expression ->
+            val token = "MARKDOWNVIEWERMATH${index}TOKEN"
+            restored = restored.replace(token, org.jsoup.nodes.TextNode(expression).outerHtml())
+        }
+        return restored
+    }
+
+    private val safeTextAlignment = Regex("""text-align\s*:\s*(left|center|right)\s*;?""")
+
     private fun sanitizeBody(html: String): String {
         val document = Jsoup.parseBodyFragment(html)
         document.outputSettings().prettyPrint(false)
@@ -145,8 +178,11 @@ internal object MarkdownHtmlRenderer {
             element.attributes().asList().map { it.key }.forEach { key ->
                 val normalizedKey = key.lowercase(Locale.ROOT)
                 val normalizedValue = element.attr(key).trim().lowercase(Locale.ROOT)
+                val unsafeStyle = normalizedKey == "style" &&
+                    !safeTextAlignment.matches(normalizedValue)
                 val unsafe = normalizedKey.startsWith("on") ||
-                    normalizedKey in unsafeAttributes ||
+                    (normalizedKey in unsafeAttributes && normalizedKey != "style") ||
+                    unsafeStyle ||
                     (normalizedKey == "href" && !(normalizedValue.startsWith("https://") ||
                         normalizedValue.startsWith("http://") || normalizedValue.startsWith("mailto:") ||
                         normalizedValue.startsWith("#"))) ||
