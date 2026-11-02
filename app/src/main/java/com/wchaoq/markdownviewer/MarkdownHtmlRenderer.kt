@@ -61,7 +61,7 @@ internal object MarkdownHtmlRenderer {
         }
         val colorScheme = if (darkTheme) "dark" else "light"
         val mermaidScript = if (body.contains("language-mermaid") || body.contains("lang-mermaid")) {
-            """<script defer src=\"/assets/markdown/mermaid.min.js\"></script>"""
+            """<script defer src="/assets/markdown/mermaid.min.js"></script>"""
         } else {
             ""
         }
@@ -70,24 +70,24 @@ internal object MarkdownHtmlRenderer {
             append(
                 """
             <!doctype html>
-            <html lang=\"en\">
+            <html lang="en">
             <head>
-              <meta charset=\"utf-8\">
-              <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=5\">
-              <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'\">
-              <meta name=\"referrer\" content=\"no-referrer\">
-              <link rel=\"stylesheet\" href=\"/assets/markdown/katex/katex.min.css\">
-              <script defer src=\"/assets/markdown/katex/katex.min.js\"></script>
-              <script defer src=\"/assets/markdown/katex/auto-render.min.js\"></script>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+              <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+              <meta name="referrer" content="no-referrer">
+              <link rel="stylesheet" href="/assets/markdown/katex/katex.min.css">
+              <script defer src="/assets/markdown/katex/katex.min.js"></script>
+              <script defer src="/assets/markdown/katex/auto-render.min.js"></script>
               $mermaidScript
-              <script defer src=\"/assets/markdown/renderer.js\"></script>
+              <script defer src="/assets/markdown/renderer.js"></script>
               <style>
                 :root { color-scheme: $colorScheme; }
                 * { box-sizing: border-box; }
                 html { background: ${colors.background}; }
                 body {
                   margin: 0; padding: 22px 20px 40px; color: ${colors.foreground}; background: ${colors.background};
-                  font-family: -apple-system, BlinkMacSystemFont, \"Roboto\", \"Noto Sans\", sans-serif;
+                  font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Noto Sans", sans-serif;
                   font-size: 16px; line-height: 1.72; overflow-wrap: anywhere;
                   -webkit-text-size-adjust: 100%;
                 }
@@ -104,7 +104,7 @@ internal object MarkdownHtmlRenderer {
                   padding: 14px; border-radius: 12px; background: ${colors.surface};
                   border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre;
                 }
-                code { font-family: \"Roboto Mono\", \"Droid Sans Mono\", monospace; font-size: 0.88em; color: ${colors.code}; }
+                code { font-family: "Roboto Mono", "Droid Sans Mono", monospace; font-size: 0.88em; color: ${colors.code}; }
                 p code, li code, td code, th code {
                   padding: 0.12em 0.35em; border-radius: 5px; background: ${colors.surface};
                   border: 1px solid ${colors.border};
@@ -127,9 +127,9 @@ internal object MarkdownHtmlRenderer {
                   border: 1px solid ${colors.border}; padding: 8px 10px; text-align: left;
                   white-space: nowrap; overflow-wrap: normal; word-break: normal;
                 }
-                th[align=\"left\"], td[align=\"left\"], th[style*=\"left\"], td[style*=\"left\"] { text-align: left; }
-                th[align=\"center\"], td[align=\"center\"], th[style*=\"center\"], td[style*=\"center\"] { text-align: center; }
-                th[align=\"right\"], td[align=\"right\"], th[style*=\"right\"], td[style*=\"right\"] { text-align: right; }
+                th[align="left"], td[align="left"], th[style*="left"], td[style*="left"] { text-align: left; }
+                th[align="center"], td[align="center"], th[style*="center"], td[style*="center"] { text-align: center; }
+                th[align="right"], td[align="right"], th[style*="right"], td[style*="right"] { text-align: right; }
                 th { background: ${colors.surface}; font-weight: 650; }
                 img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 8px; }
                 input[type=checkbox] { margin-right: 0.5em; accent-color: ${colors.link}; vertical-align: middle; }
@@ -162,10 +162,10 @@ internal object MarkdownHtmlRenderer {
     // by a line scan before the regex pass. Blockquote prefixes (> $$) are
     // recognized and stripped so KaTeX does not see them.
     private val displayMathPattern = Regex(
-        """(?s)\\\[.*?\\\]|(?<!\\)\$\$.*?(?<!\\)\$\$"""
+        """(?s)\\[.*?\\]|(?<!\\)\$\$.*?(?<!\\)\$\$"""
     )
     private val inlineMathPattern = Regex(
-        """\\\(.*?\\\)|(?<!\\)\$(?!\$)[^\r\n$]+?(?<!\s)(?<!\\)\$(?!\$)"""
+        """\\(.*?\\)|(?<!\\)\$(?!\$)[^\r\n$]+?(?<!\s)(?<!\\)\$(?!\$)"""
     )
 
     private fun stripBlockquoteMarkers(line: String): String {
