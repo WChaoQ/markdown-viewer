@@ -2,6 +2,12 @@ name: Android Release
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish the signed APK as a public GitHub Release v1.0.0
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -86,3 +92,51 @@ jobs:
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 90
+
+  publish:
+    name: Publish public v1.0.0 GitHub Release
+    needs: release
+    if: ${{ inputs.publish_release }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download signed Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: markdown-viewer-release-signed
+          path: release-apk
+
+      - name: Create public GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: Markdown Viewer 1.0.0
+          target_commitish: ${{ github.sha }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          body: |
+            ## Markdown Viewer 1.0.0
+
+            First public release of the Android Markdown Viewer.
+
+            ### Features
+            - Read-only Markdown and GFM rendering
+            - LaTeX math formulas powered by KaTeX
+            - Mermaid diagrams
+            - Code syntax highlighting and copy buttons
+            - In-document search
+            - Light and dark theme support
+            - Offline rendering with bundled assets
+
+            ### Download
+            Download **markdown-viewer-v1.0.0.apk** below and install it on your Android device. You may need to allow installation from your browser or file manager.
+
+            ### Requirements
+            - Android 6.0 (API 23) or later
+
+            ### Build and attribution
+            Created and built with ChatGPT (OpenAI) under the project owner's direction. The signed APK is built and signature-verified by GitHub Actions.
+          files: release-apk/app-release.apk
+          fail_on_unmatched_files: true
