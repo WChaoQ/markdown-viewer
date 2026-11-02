@@ -190,6 +190,46 @@ x^2 + y^2 = z^2
         assertTrue(html.contains("""td[align="right"]"""))
     }
 
+
+    @Test
+    fun keepsCurrencyTableRowsSeparateFromInlineMath() {
+        val markdown = """| 姓名 | 职位 | 偏好对齐方式 | 薪资 |
+| :--- | :---: | :--- | ---: |
+| 张三 | 工程师 | 左对齐 | $10,000 |
+| 李四 | 设计师 | 居中对齐 | $9,500 |
+| 王五 | 产品经理 | 右对齐 | $12,000 |"""
+
+        val html = MarkdownHtmlRenderer.render(markdown, false)
+
+        assertTrue(html.contains("张三"))
+        assertTrue(html.contains("李四"))
+        assertTrue(html.contains("王五"))
+        assertTrue(html.contains("$10,000"))
+        assertTrue(html.contains("$9,500"))
+        assertTrue(html.contains("$12,000"))
+        assertTrue(html.contains("class=\"table-scroll\""))
+        assertTrue(html.contains("white-space: nowrap"))
+    }
+
+    @Test
+    fun keepsInlineMathAndMultilineDisplayMathDistinct() {
+        val markdown = """Inline $E = mc^2$.
+
+$
+\\mathbf{A} = \\begin{pmatrix}
+a_{11} & a_{12} \\
+a_{21} & a_{22}
+\\end{pmatrix}
+$"""
+
+        val html = MarkdownHtmlRenderer.render(markdown, false)
+
+        assertTrue(html.contains("$E = mc^2$"))
+        assertTrue(html.contains("$"))
+        assertTrue(html.contains("\\\\begin{pmatrix}"))
+        assertTrue(html.contains("/assets/markdown/katex/auto-render.min.js"))
+    }
+
     @Test
     fun rendersNestedListsBlockquotesAndHorizontalRules() {
         val html = MarkdownHtmlRenderer.render(
