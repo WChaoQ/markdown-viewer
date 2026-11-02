@@ -92,16 +92,10 @@ class MarkdownViewerActivity : ComponentActivity() {
             ?.takeIf(String::isNotBlank)
             ?: Uri.decode(uri.lastPathSegment.orEmpty()).takeIf(String::isNotBlank)
             ?: "document.md"
-        val mimeType = contentResolver.getType(uri)
-            ?.substringBefore(';')
-            ?.trim()
-            ?.lowercase(Locale.ROOT)
         val normalizedName = fileName.lowercase(Locale.ROOT)
-        val hasMarkdownExtension = normalizedName.endsWith(".md") ||
-            normalizedName.endsWith(".markdown")
-        val hasMarkdownMime = mimeType == "text/markdown" || mimeType == "text/x-markdown"
+        val hasMarkdownExtension = normalizedName.endsWith(".md")
 
-        if (!hasMarkdownExtension && !hasMarkdownMime) {
+        if (!hasMarkdownExtension) {
             throw UnsupportedMarkdownException()
         }
 
