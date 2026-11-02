@@ -289,4 +289,29 @@ x^2 + y^2 = z^2
         assertTrue(html.contains(">link</a>"))
     }
 
+
+    @Test
+    fun includesLocalHighlightJsAndThemeStyles() {
+        val lightHtml = MarkdownHtmlRenderer.render("```kotlin\nval answer = 42\n```", false)
+        val darkHtml = MarkdownHtmlRenderer.render("```python\nprint(42)\n```", true)
+
+        assertTrue(lightHtml.contains("/assets/markdown/highlight.min.js"))
+        assertTrue(lightHtml.contains("/assets/markdown/highlight/styles/github.min.css"))
+        assertTrue(darkHtml.contains("/assets/markdown/highlight/styles/github-dark.min.css"))
+        assertTrue(lightHtml.contains("language-kotlin"))
+        assertTrue(darkHtml.contains("language-python"))
+        assertTrue(lightHtml.contains("code-toolbar"))
+        assertTrue(lightHtml.contains("复制"))
+    }
+
+    @Test
+    fun keepsDollarExpressionsInsideCodeBlocksAndInlineCodeLiteral() {
+        val markdown = "```bash\necho \"$HOME\"\necho \"$price$\"\n```\n\nInline `$value$` stays literal."
+        val html = MarkdownHtmlRenderer.render(markdown, false)
+
+        assertTrue(html.contains("$HOME"))
+        assertTrue(html.contains("$price$"))
+        assertTrue(html.contains("$value$"))
+        assertTrue(html.contains("language-bash"))
+    }
 }
