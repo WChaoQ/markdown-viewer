@@ -9,6 +9,11 @@ import java.util.Locale
 internal class ParsedMarkdown internal constructor(val bodyHtml: String)
 
 internal object MarkdownHtmlRenderer {
+    private val unsafeAttributes = setOf(
+        "style", "srcset", "srcdoc", "formaction", "action",
+        "poster", "background", "xlink:href"
+    )
+
     private fun normalizeLineEndings(markdown: String): String {
         val start = if (markdown.startsWith("\uFEFF")) 1 else 0
         val firstCarriageReturn = markdown.indexOf('\r', start)
@@ -141,7 +146,7 @@ internal object MarkdownHtmlRenderer {
                 val normalizedKey = key.lowercase(Locale.ROOT)
                 val normalizedValue = element.attr(key).trim().lowercase(Locale.ROOT)
                 val unsafe = normalizedKey.startsWith("on") ||
-                    normalizedKey in setOf("style", "srcset", "srcdoc", "formaction", "action", "poster", "background", "xlink:href") ||
+                    normalizedKey in unsafeAttributes ||
                     (normalizedKey == "href" && !(normalizedValue.startsWith("https://") ||
                         normalizedValue.startsWith("http://") || normalizedValue.startsWith("mailto:") ||
                         normalizedValue.startsWith("#"))) ||
