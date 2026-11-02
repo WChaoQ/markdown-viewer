@@ -1,5 +1,0 @@
-line1
-backslash-dollar: \$
-double-dollar in text: $$
-raw string style: (?<!\\)\$\$
-end
