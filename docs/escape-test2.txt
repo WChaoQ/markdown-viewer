@@ -1,0 +1,5 @@
+quote test: lang="en" vs lang="en"
+backslash-t in class: [ \t]*
+actual newlines below
+line2
+end
