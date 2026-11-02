@@ -24,19 +24,34 @@ The app uses [JetBrains Markdown](https://github.com/JetBrains/markdown) (`org.j
 
 The first version does not resolve local relative image paths. This avoids copying neighbouring files or requesting broad storage access. Remote images are also not loaded because the app does not request Internet access.
 
+### Mathematics and diagrams
+
+- KaTeX renders inline math with `$...$` and `\\(...\\)`, and display math with `$$...$$` and `\\[...\\]`.
+- Mermaid fenced blocks (```mermaid) render as diagrams. Invalid diagram syntax remains visible as a code block.
+- Renderer scripts, styles, fonts, and license notices are packaged as local APK assets. Reading does not need network access and the app does not request Internet permission.
+
 ## Build
 
-Open the project in Android Studio, or use Gradle 8.13 with JDK 17:
+Use Gradle 8.13 with JDK 17:
 
 ```bash
 gradle assembleDebug
 ```
 
-The APK is produced at `app/build/outputs/apk/debug/app-debug.apk`.
+The Debug APK is produced at `app/build/outputs/apk/debug/app-debug.apk`.
 
-## GitHub Actions
+## Signed Release APK
 
-Builds are manual only. Open **Actions → Android CI → Run workflow** when you explicitly want to run tests and build Debug and unsigned Release APKs. APKs are uploaded as workflow artifacts.
+The Release workflow requires four GitHub Actions repository secrets:
+
+- `ANDROID_KEYSTORE_BASE64`: Base64-encoded contents of your release keystore.
+- `ANDROID_KEYSTORE_PASSWORD`: keystore password.
+- `ANDROID_KEY_ALIAS`: `markdown-viewer`.
+- `ANDROID_KEY_PASSWORD`: private-key password.
+
+Never commit the keystore or passwords to the repository. Open **Settings → Secrets and variables → Actions → New repository secret** to add each value. Then open **Actions → Android Release → Run workflow**. The workflow runs unit tests, builds the signed Release APK, verifies its signature, and uploads both Debug and signed Release APK artifacts.
+
+Release signing is applied only when the signing environment variables are present. Local builds without those values remain unsigned.
 
 ## Privacy and permissions
 
@@ -45,11 +60,3 @@ The manifest intentionally does not request storage, Internet, or notification p
 ## License
 
 The application source is licensed under Apache-2.0. JetBrains Markdown is a separate Apache-2.0 dependency.
-
-
-### Mathematics and diagrams
-
-- KaTeX renders inline math with `$...$` and `\\(...\\)`, and display math with `$$...$$` and `\\[...\\]`.
-- Mermaid fenced blocks (```mermaid) render as diagrams. Invalid diagram syntax remains visible as a code block.
-- Renderer scripts, styles, fonts, and license notices are packaged as local APK assets. Reading does not need network access and the app does not request Internet permission.
-- Release builds enable R8 code shrinking and Android resource shrinking. The first build downloads pinned renderer assets into Gradle's generated build directory; the build environment therefore needs network access. GitHub Actions runs only when manually dispatched.
