@@ -239,7 +239,7 @@ internal object MarkdownHtmlRenderer {
         return restored
     }
 
-    private val safeTextAlignment = Regex("""text-align\\s*:\\s*(left|center|right)\\s*;?""")
+    private val safeTextAlignment = Regex("""text-align\s*:\s*(left|center|right)\s*;?""")
 
     private fun sanitizeBody(html: String): String {
         val document = Jsoup.parseBodyFragment(html)
