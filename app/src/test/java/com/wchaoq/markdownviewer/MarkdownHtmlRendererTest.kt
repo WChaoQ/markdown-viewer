@@ -309,9 +309,9 @@ x^2 + y^2 = z^2
         val markdown = "```bash\necho \"$HOME\"\necho \"$price$\"\n```\n\nInline `$value$` stays literal."
         val html = MarkdownHtmlRenderer.render(markdown, false)
 
-        assertTrue(html.contains("$HOME"))
-        assertTrue(html.contains("$price$"))
-        assertTrue(html.contains("$value$"))
+        assertTrue(html.contains("\\$HOME"))
+        assertTrue(html.contains("\\$price\\$"))
+        assertTrue(html.contains("\\$value\\$"))
         assertTrue(html.contains("language-bash"))
     }
 }
