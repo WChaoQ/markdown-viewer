@@ -158,11 +158,14 @@ internal object MarkdownHtmlRenderer {
     // Display math may span lines. Inline math must never span a newline:
     // otherwise currency values in adjacent GFM table rows (for example
     // "$10,000" and "$9,500") are mistaken for one enormous math expression.
+    // Display math may span lines. Inline math must never span a newline:
+    // otherwise currency values in adjacent GFM table rows (for example
+    // "$10,000" and "$9,500") are mistaken for one enormous math expression.
     private val displayMathPattern = Regex(
-        """(?s)\\\\\\[.*?\\\\\\]|(?<!\\\\)\\$\\$.*?(?<!\\\\)\\$\\$"""
+        """(?s)\\\[.*?\\\]|(?<!\\)\$\$.*?(?<!\\)\$\$"""
     )
     private val inlineMathPattern = Regex(
-        """\\\\\\(.*?\\\\\\)|(?<!\\\\)\\$(?!\\$)[^\\r\\n$]+?(?<!\\s)(?<!\\\\)\\$(?!\\$)"""
+        """\\\(.*?\\\)|(?<!\\)\$(?!\$)[^\r\n$]+?(?<!\s)(?<!\\)\$(?!\$)"""
     )
 
     private fun protectMathExpressions(markdown: String): Pair<String, List<String>> {
