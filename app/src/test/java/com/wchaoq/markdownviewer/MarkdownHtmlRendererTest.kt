@@ -327,12 +327,14 @@ x^2 + y^2 = z^2
     @Test
     fun rendersStandaloneSvgHost() {
         val html = MarkdownHtmlRenderer.renderSvg(
-            """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="red"/></svg>""",
+            """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="red"/><script>alert(1)</script></svg>""",
             false
         )
         assertTrue(html.contains("svg-host"))
         assertTrue(html.contains("<svg"))
         assertTrue(html.contains("circle"))
-        assertTrue(!html.contains("<script"))
+        // Bundled renderer scripts are expected in <head>; inline executable SVG script must be stripped.
+        assertTrue(!html.contains("alert(1)"))
+        assertTrue(html.contains("/assets/markdown/renderer.js"))
     }
 }
