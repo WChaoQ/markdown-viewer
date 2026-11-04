@@ -2,6 +2,7 @@ package com.wchaoq.markdownviewer
 
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.Toast
@@ -11,6 +12,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,14 +21,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStreamReader
-import java.nio.charset.CodingErrorAction
 import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
 import java.util.Locale
 
 class MarkdownViewerActivity : ComponentActivity() {
@@ -36,21 +40,30 @@ class MarkdownViewerActivity : ComponentActivity() {
 
         setContent {
             val darkTheme = isSystemInDarkTheme()
+            val context = LocalContext.current
+            val colorScheme = remember(darkTheme, context) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                } else {
+                    if (darkTheme) darkColorScheme() else lightColorScheme()
+                }
+            }
+
             var fileName by remember { mutableStateOf<String?>(null) }
-            var markdown by remember { mutableStateOf<String?>(null) }
+            var document by remember { mutableStateOf<LoadedDocumentContent?>(null) }
 
             LaunchedEffect(incomingUri) {
                 if (incomingUri == null) {
-                    closeWithMessage("No Markdown document was provided.")
+                    closeWithMessage("No document was provided.")
                     return@LaunchedEffect
                 }
 
                 try {
-                    val document = withContext(Dispatchers.IO) {
+                    val loaded = withContext(Dispatchers.IO) {
                         loadDocument(incomingUri)
                     }
-                    fileName = document.first
-                    markdown = document.second
+                    fileName = loaded.fileName
+                    document = loaded
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
@@ -58,13 +71,11 @@ class MarkdownViewerActivity : ComponentActivity() {
                 }
             }
 
-            MaterialTheme(
-                colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
-            ) {
+            MaterialTheme(colorScheme = colorScheme) {
                 Surface(color = Color.Transparent) {
                     MarkdownViewerScreen(
                         title = fileName ?: "Markdown Viewer",
-                        markdown = markdown,
+                        document = document,
                         documentUri = incomingUri
                     )
                 }
@@ -79,24 +90,25 @@ class MarkdownViewerActivity : ComponentActivity() {
 
     private fun Exception.toUserMessage(): String = when (this) {
         is DocumentTooLargeException -> "This document is larger than 20 MB."
-        is EmptyMarkdownDocumentException -> "This Markdown document is empty."
-        is UnsupportedMarkdownException -> "This file is not a supported Markdown document."
+        is EmptyMarkdownDocumentException -> "This document is empty."
+        is UnsupportedMarkdownException -> "This file type is not supported."
         is SecurityException -> "Permission to read this document was denied. Open it again."
         is FileNotFoundException -> "This document is no longer available."
         is CharacterCodingException -> "This document is not valid UTF-8 text."
         else -> "Unable to read this document. Please open it again."
     }
 
-    private fun loadDocument(uri: Uri): Pair<String, String> {
+    private fun loadDocument(uri: Uri): LoadedDocumentContent {
         val fileName = queryDisplayName(uri)
             ?.takeIf(String::isNotBlank)
             ?: Uri.decode(uri.lastPathSegment.orEmpty()).takeIf(String::isNotBlank)
             ?: "document.md"
         val normalizedName = fileName.lowercase(Locale.ROOT)
-        val hasMarkdownExtension = normalizedName.endsWith(".md")
-
-        if (!hasMarkdownExtension) {
-            throw UnsupportedMarkdownException()
+        val kind = when {
+            normalizedName.endsWith(".md") || normalizedName.endsWith(".markdown") -> DocumentKind.MARKDOWN
+            normalizedName.endsWith(".txt") -> DocumentKind.PLAIN_TEXT
+            normalizedName.endsWith(".svg") -> DocumentKind.SVG
+            else -> throw UnsupportedMarkdownException()
         }
 
         val content = contentResolver.openInputStream(uri)?.use { input ->
@@ -104,7 +116,6 @@ class MarkdownViewerActivity : ComponentActivity() {
                 .onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT)
             InputStreamReader(SizeLimitedInputStream(input, MAX_DOCUMENT_BYTES), decoder).use { reader ->
-                // Reserve a small reusable buffer without over-allocating for multibyte UTF-8.
                 val result = StringBuilder(DEFAULT_BUFFER_SIZE)
                 val firstCharacter = reader.read()
                 if (firstCharacter >= 0 && firstCharacter != '\uFEFF'.code) {
@@ -122,7 +133,7 @@ class MarkdownViewerActivity : ComponentActivity() {
         } ?: throw IOException("Unable to open document.")
 
         if (content.isBlank()) throw EmptyMarkdownDocumentException()
-        return fileName to content
+        return LoadedDocumentContent(fileName, content, kind)
     }
 
     private fun queryDisplayName(uri: Uri): String? {
@@ -151,6 +162,18 @@ class MarkdownViewerActivity : ComponentActivity() {
         const val MAX_DOCUMENT_BYTES = 20 * 1024 * 1024
     }
 }
+
+internal enum class DocumentKind {
+    MARKDOWN,
+    PLAIN_TEXT,
+    SVG
+}
+
+internal data class LoadedDocumentContent(
+    val fileName: String,
+    val content: String,
+    val kind: DocumentKind
+)
 
 internal class DocumentTooLargeException : IOException()
 internal class EmptyMarkdownDocumentException : IOException()
