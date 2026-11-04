@@ -315,4 +315,24 @@ x^2 + y^2 = z^2
         assertTrue(html.contains(dollar + "value" + dollar))
         assertTrue(html.contains("language-bash"))
     }
+
+    @Test
+    fun rendersPlainTextAsPreformattedBlock() {
+        val html = MarkdownHtmlRenderer.renderPlainText("line 1\nline 2 & <tag>", false)
+        assertTrue(html.contains("plain-text"))
+        assertTrue(html.contains("line 1"))
+        assertTrue(html.contains("&amp;") || html.contains("&lt;"))
+    }
+
+    @Test
+    fun rendersStandaloneSvgHost() {
+        val html = MarkdownHtmlRenderer.renderSvg(
+            """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="red"/></svg>""",
+            false
+        )
+        assertTrue(html.contains("svg-host"))
+        assertTrue(html.contains("<svg"))
+        assertTrue(html.contains("circle"))
+        assertTrue(!html.contains("<script"))
+    }
 }
