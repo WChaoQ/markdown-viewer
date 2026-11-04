@@ -1,9 +1,12 @@
 package com.wchaoq.markdownviewer
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Entities
 import java.util.Locale
 
 internal class ParsedMarkdown internal constructor(val bodyHtml: String)
@@ -12,6 +15,23 @@ internal object MarkdownHtmlRenderer {
     private val unsafeAttributes = setOf(
         "style", "srcset", "srcdoc", "formaction", "action",
         "poster", "background", "xlink:href"
+    )
+
+    // Safe presentational attributes commonly used by SVG documents.
+    private val safeSvgAttributes = setOf(
+        "viewbox", "width", "height", "xmlns", "xmlns:xlink", "version",
+        "preserveaspectratio", "fill", "stroke", "stroke-width", "stroke-linecap",
+        "stroke-linejoin", "stroke-dasharray", "stroke-dashoffset", "stroke-opacity",
+        "fill-opacity", "fill-rule", "opacity", "transform", "d", "cx", "cy", "r",
+        "rx", "ry", "x", "y", "x1", "y1", "x2", "y2", "points", "offset",
+        "stop-color", "stop-opacity", "gradientunits", "gradienttransform",
+        "spreadmethod", "fx", "fy", "id", "class", "clip-path", "clip-rule",
+        "mask", "filter", "font-size", "font-family", "font-weight", "text-anchor",
+        "dominant-baseline", "letter-spacing", "word-spacing", "visibility",
+        "display", "overflow", "vector-effect", "marker-start", "marker-mid",
+        "marker-end", "markerwidth", "markerheight", "refx", "refy", "orient",
+        "markerunits", "pathlength", "dx", "dy", "rotate", "textlength",
+        "lengthadjust", "startoffset", "method", "spacing", "href"
     )
 
     private fun normalizeLineEndings(markdown: String): String {
@@ -48,20 +68,47 @@ internal object MarkdownHtmlRenderer {
         return ParsedMarkdown(restoreMathExpressions(sanitizedHtml, mathExpressions))
     }
 
-    fun render(markdown: String, darkTheme: Boolean): String =
-        render(parse(markdown), darkTheme)
+    fun render(markdown: String, darkTheme: Boolean, colors: CssColors = defaultColors(darkTheme)): String =
+        render(parse(markdown), darkTheme, colors)
 
-    fun render(parsed: ParsedMarkdown, darkTheme: Boolean): String {
+    fun renderPlainText(text: String, darkTheme: Boolean, colors: CssColors = defaultColors(darkTheme)): String {
+        val escaped = Entities.escape(normalizeLineEndings(text))
+        val body = "<pre class=\"plain-text\">$escaped</pre>"
+        return wrapHtml(body, darkTheme, colors, includeHighlight = false, includeMermaid = false)
+    }
+
+    fun renderSvg(svgSource: String, darkTheme: Boolean, colors: CssColors = defaultColors(darkTheme)): String {
+        val sanitized = sanitizeSvgDocument(svgSource)
+        val body = "<div class=\"svg-host\">$sanitized</div>"
+        return wrapHtml(body, darkTheme, colors, includeHighlight = false, includeMermaid = false)
+    }
+
+    fun render(parsed: ParsedMarkdown, darkTheme: Boolean, colors: CssColors = defaultColors(darkTheme)): String {
         val body = parsed.bodyHtml
+        val includeMermaid = body.contains("language-mermaid") || body.contains("lang-mermaid")
+        return wrapHtml(body, darkTheme, colors, includeHighlight = true, includeMermaid = includeMermaid)
+    }
 
-        val colors = if (darkTheme) {
-            CssColors("#121212", "#E6E1E5", "#CAC4D0", "#211F26", "#49454F", "#D0BCFF", "#F2B8B5")
-        } else {
-            CssColors("#FFFBFE", "#1C1B1F", "#49454F", "#F3EDF7", "#CAC4D0", "#6750A4", "#8C1D18")
-        }
+    private fun wrapHtml(
+        body: String,
+        darkTheme: Boolean,
+        colors: CssColors,
+        includeHighlight: Boolean,
+        includeMermaid: Boolean
+    ): String {
         val colorScheme = if (darkTheme) "dark" else "light"
-        val mermaidScript = if (body.contains("language-mermaid") || body.contains("lang-mermaid")) {
+        val mermaidScript = if (includeMermaid) {
             """<script defer src="/assets/markdown/mermaid.min.js"></script>"""
+        } else {
+            ""
+        }
+        val highlightCss = if (includeHighlight) {
+            """<link rel="stylesheet" href="/assets/markdown/highlight/styles/${if (darkTheme) "github-dark" else "github"}.min.css">"""
+        } else {
+            ""
+        }
+        val highlightScript = if (includeHighlight) {
+            """<script defer src="/assets/markdown/highlight.min.js"></script>"""
         } else {
             ""
         }
@@ -77,8 +124,8 @@ internal object MarkdownHtmlRenderer {
               <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
               <meta name="referrer" content="no-referrer">
               <link rel="stylesheet" href="/assets/markdown/katex/katex.min.css">
-              <link rel="stylesheet" href="/assets/markdown/highlight/styles/${if (darkTheme) "github-dark" else "github"}.min.css">
-              <script defer src="/assets/markdown/highlight.min.js"></script>
+              $highlightCss
+              $highlightScript
               <script defer src="/assets/markdown/katex/katex.min.js"></script>
               <script defer src="/assets/markdown/katex/auto-render.min.js"></script>
               $mermaidScript
@@ -105,6 +152,17 @@ internal object MarkdownHtmlRenderer {
                   max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
                   padding: 14px; border-radius: 12px; background: ${colors.surface};
                   border: 1px solid ${colors.border}; line-height: 1.55; white-space: pre;
+                }
+                pre.plain-text {
+                  white-space: pre-wrap; word-break: break-word; font-family: "Roboto Mono", "Droid Sans Mono", monospace;
+                  font-size: 0.9em;
+                }
+                .svg-host {
+                  display: block; width: 100%; max-width: 100%; overflow-x: auto; text-align: center;
+                  -webkit-overflow-scrolling: touch;
+                }
+                .svg-host svg {
+                  display: block; max-width: 100%; height: auto; margin: 0 auto;
                 }
                 .code-block {
                   max-width: 100%; margin: 1em 0; overflow: hidden;
@@ -312,18 +370,32 @@ internal object MarkdownHtmlRenderer {
         document.select("script, iframe, object, embed, form, base, meta, link, style").remove()
 
         document.body().getAllElements().forEach { element ->
+            val tag = element.tagName().lowercase(Locale.ROOT)
+            val isSvgContext = tag == "svg" || element.parents().any { it.tagName().equals("svg", ignoreCase = true) }
+
             element.attributes().asList().map { it.key }.forEach { key ->
                 val normalizedKey = key.lowercase(Locale.ROOT)
                 val normalizedValue = element.attr(key).trim().lowercase(Locale.ROOT)
                 val unsafeStyle = normalizedKey == "style" &&
                     !safeTextAlignment.matches(normalizedValue)
+                val unsafeSrc = normalizedKey == "src" &&
+                    !(normalizedValue.startsWith("data:image/") ||
+                        normalizedValue.startsWith("data:image/svg+xml"))
+                val unsafeHref = normalizedKey == "href" && !(normalizedValue.startsWith("https://") ||
+                    normalizedValue.startsWith("http://") || normalizedValue.startsWith("mailto:") ||
+                    normalizedValue.startsWith("#") ||
+                    (isSvgContext && (normalizedValue.startsWith("#") || normalizedValue.isEmpty())))
+                val svgAttrUnsafe = isSvgContext &&
+                    normalizedKey !in safeSvgAttributes &&
+                    !normalizedKey.startsWith("data-") &&
+                    normalizedKey != "class" &&
+                    normalizedKey != "id"
                 val unsafe = normalizedKey.startsWith("on") ||
                     (normalizedKey in unsafeAttributes && normalizedKey != "style") ||
                     unsafeStyle ||
-                    (normalizedKey == "href" && !(normalizedValue.startsWith("https://") ||
-                        normalizedValue.startsWith("http://") || normalizedValue.startsWith("mailto:") ||
-                        normalizedValue.startsWith("#"))) ||
-                    (normalizedKey == "src" && !normalizedValue.startsWith("data:image/"))
+                    unsafeHref ||
+                    unsafeSrc ||
+                    (isSvgContext && svgAttrUnsafe && normalizedKey != "style")
                 if (unsafe) element.removeAttr(key)
             }
         }
@@ -333,7 +405,70 @@ internal object MarkdownHtmlRenderer {
         return document.body().html()
     }
 
-    private data class CssColors(
+    private fun sanitizeSvgDocument(source: String): String {
+        val trimmed = source.trim()
+        if (trimmed.isEmpty()) return ""
+        val document = Jsoup.parseBodyFragment(trimmed)
+        document.outputSettings().prettyPrint(false).escapeMode(Entities.EscapeMode.xhtml)
+        document.select("script, iframe, object, embed, form, base, meta, link, foreignObject").remove()
+
+        document.body().getAllElements().forEach { element ->
+            element.attributes().asList().map { it.key }.forEach { key ->
+                val normalizedKey = key.lowercase(Locale.ROOT)
+                val normalizedValue = element.attr(key).trim().lowercase(Locale.ROOT)
+                val keep =
+                    normalizedKey in safeSvgAttributes ||
+                        normalizedKey == "class" ||
+                        normalizedKey == "id" ||
+                        normalizedKey.startsWith("data-") ||
+                        (normalizedKey == "href" && (normalizedValue.startsWith("#") || normalizedValue.isEmpty())) ||
+                        (normalizedKey == "xlink:href" && (normalizedValue.startsWith("#") || normalizedValue.isEmpty()))
+                if (!keep || normalizedKey.startsWith("on")) {
+                    element.removeAttr(key)
+                }
+            }
+        }
+
+        val svg = document.selectFirst("svg")
+        return if (svg != null) {
+            svg.outerHtml()
+        } else {
+            // Fallback: treat whole fragment as SVG markup if root tag was preserved oddly.
+            document.body().html()
+        }
+    }
+
+    fun defaultColors(darkTheme: Boolean): CssColors =
+        if (darkTheme) {
+            CssColors("#121212", "#E6E1E5", "#CAC4D0", "#211F26", "#49454F", "#D0BCFF", "#F2B8B5")
+        } else {
+            CssColors("#FFFBFE", "#1C1B1F", "#49454F", "#F3EDF7", "#CAC4D0", "#6750A4", "#8C1D18")
+        }
+
+    fun colorsFromCompose(
+        background: Color,
+        foreground: Color,
+        muted: Color,
+        surface: Color,
+        border: Color,
+        link: Color,
+        code: Color
+    ): CssColors = CssColors(
+        background.toCssHex(),
+        foreground.toCssHex(),
+        muted.toCssHex(),
+        surface.toCssHex(),
+        border.toCssHex(),
+        link.toCssHex(),
+        code.toCssHex()
+    )
+
+    private fun Color.toCssHex(): String {
+        val argb = toArgb()
+        return String.format("#%06X", argb and 0xFFFFFF)
+    }
+
+    data class CssColors(
         val background: String,
         val foreground: String,
         val muted: String,
